@@ -1,59 +1,26 @@
-# python_template Repo
-A template for new Python projects
+# Arc Arena
 
-# How to run tools against the code
+*Can you survive longer than your foes in the arena?*
 
-    # create virual environment
-    python -m venv venv
+Arc Arena is a hotseat game that features a large number of players (1-10+) on one screen.
+
+
+# Installation
+
+    pip install git+https://github.com/SirGnip/arc_arena.git
+    python -m arc_arena.Snake
     
-    # install to current environment (with current dir at top of repo) 
-    pip install .     # "static" install
-    pip install -e .  # "editable" install (setup.py handles source being under `src/`)
+## ...for development
 
-    # run app from instal
-    python -m gnp
-    
-    # run app directly from local repo (with current dir at top of repo)
-    cd src/
-    python -m gnp
-    
-    # run tests: path-based 
-    python -m pytest tests/
-    python -m pytest tests/test_common.py
-    python -m pytest tests/sub
-    # run tests: package syntax
-    python -m pytest --pyargs tests.sub
-
-    # run tests with coverage metrics
-    python -m pytest --cov tests/
-    python -m pytest --cov tests/sub
-    python -m pytest --cov tests.sub
-
-    # run linting
-    pylint src/  # recurses into directory
-    pylint src/ tests/
-    pylint gnp.common  # can use package names to lint what is installed
-    
-    # run mypy
-    mypy src/  # recurses into directory tree
-    mypy src/gnp/common/util.py
-
-    cd src
-    mypy -p gnp
-    mypy -p gnp.common
-    mypy -m gnp.common.util
+    # Open a GitBash shell
+    git clone https://github.com/SirGnip/arc_arena.git
+    cd arc_arena
+    py -2 -m virtualenv venv
+    source venv/Scripts/activate
+    pip install -e .
 
 
-# Running app from PyCharm
+# Revision History
 
-## Use Default Python Interpreter from PyCharm
-- For `src/`, do "Mark Directory" and set as "Sources Root" (folder turns light blue) 
-- Right click on `src/gnp/__main__.py` and choose "Run \_\_main\_\_"
-    - This relies on the Run Configuration having "Add source roots to PYTHONPATH" set to true (the default)
-
-## Use local venv
-- Create venv
-- Install package into the venv (ex: `pip install -e .`)
-- Set venv as the project's Python interpreter in PyCharm
-- Right click on `src/gnp/__misc__.py` and choose "Run \_\_main\_\_"
-    - Note: This does NOT rely on a Sources Root folder being set or PYTHONPATH in the Run Configuration.
+- 1.0.0: migrated code to GitHub, added ability to package with setup.py, extracted shared code into `gnp_pygame`, no attempts at cleanup.
+- pre-GitHub (2006, probably even earlier): a big, messy uber-repo-ish kinda thing with tons of random Python code, which included this game. I creatively called the game "Snake".
