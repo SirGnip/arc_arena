@@ -1,0 +1,64 @@
+[MASTER]
+
+[MESSAGES CONTROL]
+
+ignored-classes=
+
+# http://pylint.pycqa.org/en/latest/user_guide/message-control.html
+disable=missing-docstring,
+    #F,     # fatal
+    #E,     # errors
+    #E1101, # no-member
+    #W,     # warnings
+    #R,     # refactoring
+    #C,     # convention
+
+enable=wildcard-import,
+#       W0403
+
+[REPORTS]
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details.
+msg-template={abspath}:{line} {msg_id} ({symbol}) {msg} http://pylint-messages.wikidot.com/messages:{msg_id}
+
+# Set the output format. Available formats are text, parseable, colorized, json
+# and msvs (visual studio). You can also give a reporter class, e.g.
+# mypackage.mymodule.MyReporterClass.
+output-format=text
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+[REFACTORING]
+
+[BASIC]
+
+[FORMAT]
+
+[LOGGING]
+
+[MISCELLANEOUS]
+
+[SIMILARITIES]
+
+[SPELLING]
+
+[TYPECHECK]
+# Note: these are not fully qualified package names, but rather object and attribute names as they appear in the code.
+generated-members=
+    myobj.generated_member,
+    myobj.generated_member2
+
+[VARIABLES]
+
+[CLASSES]
+
+[DESIGN]
+
+[IMPORTS]
+
+ignored-modules=
+    module1,
+    package1.submodule1,
+
+[EXCEPTIONS]
