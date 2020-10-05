@@ -23,7 +23,7 @@ class Player:
         'Ender',
         'Eowyn',
         'Ernie',
-        'Gandalph',
+        'Gandalf',
         'Guinevere',
         'Hermes',
         'Jedi',
