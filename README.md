@@ -24,3 +24,5 @@ Arc Arena is a hotseat game that features a large number of players (1-10+) on o
 
 - 1.0.0: migrated code to GitHub, added ability to package with setup.py, extracted shared code into `gnp_pygame`, no attempts at cleanup.
 - pre-GitHub (2006, probably even earlier): a big, messy uber-repo-ish kinda thing with tons of random Python code, which included this game. I creatively called the game "Snake".
+
+![Hits](http://cc.amazingcounters.com/counter.php?i=3245829&c=9737800)
