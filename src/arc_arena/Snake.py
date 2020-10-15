@@ -8,7 +8,7 @@ import functools
 import random
 from gnp_pygame import gnipMath
 from gnp_pygame import gnpinput
-import SnakeSettings
+from arc_arena import SnakeSettings
 import copy
 import pickle
 import traceback
@@ -70,36 +70,36 @@ def _alphaize(color, alpha):
 def load_player_controllers(input_configs):
     def persistent_load(persist_id):
         try:
-            print '\tUnpickling with persist_id: "%s"' % persist_id
+            print('\tUnpickling with persist_id: "%s"' % persist_id)
             for ic in input_configs:
                 if ic.get_pickle_persist_id() == persist_id:
-                    print '\tUnpickled %s "%s"' % (type(ic).__name__, ic.get_pickle_persist_id())
+                    print('\tUnpickled %s "%s"' % (type(ic).__name__, ic.get_pickle_persist_id()))
                     return ic
             raise pickle.UnpicklingError('Unable to find matching InputConfig with id: %s' % ic.get_pickle_persist_id())
         except Exception as exc:
             raise pickle.UnpicklingError('Unable to use persistent id (%s) to unpickle external object. Exception type:%s %s' % (persist_id, type(exc).__name__, str(exc)))
 
-    print 'Attempting to load previous players from %s' % CFG.Player.Filename
+    print('Attempting to load previous players from %s' % CFG.Player.Filename)
     unpickler = pickle.Unpickler(open(CFG.Player.Filename, 'rb'))
     unpickler.persistent_load = persistent_load
     controllers = unpickler.load()
-    print 'Loaded %d players from disk at: %s' % (len(controllers), CFG.Player.Filename)
+    print('Loaded %d players from disk at: %s' % (len(controllers), CFG.Player.Filename))
     return controllers
 
 
 def save_player_controllers(controllers):
     def persistent_id(obj):
         if isinstance(obj, InputConfig):
-            print 'Pickling %s with custom persist_id: "%s"' % (type(obj), obj.get_pickle_persist_id())
+            print('Pickling %s with custom persist_id: "%s"' % (type(obj), obj.get_pickle_persist_id()))
             return obj.get_pickle_persist_id()
         return None
 
     # save player list to disk
-    print 'Saving %d player controllers to disk at: %s' % (len(controllers), CFG.Player.Filename)
+    print('Saving %d player controllers to disk at: %s' % (len(controllers), CFG.Player.Filename))
     pickler = pickle.Pickler(open(CFG.Player.Filename, 'wb'), 2)
     pickler.persistent_id = persistent_id
     pickler.dump(controllers)
-    print 'Player controller save complete'
+    print('Player controller save complete')
 
 
 class TextActor(gnpactor.LifetimeActor):
@@ -421,7 +421,7 @@ class Snake(object):
         try:
             return self.get_color_under_whisker(game_surface) != CFG.Win.BackgroundColorRGB
         except IndexError as e:
-            print 'WARNING: Killing snake "%s" because its whisker went off screen with snake at position=%s. Exception: %s' % (self._controller, self.pos, e)
+            print('WARNING: Killing snake "%s" because its whisker went off screen with snake at position=%s. Exception: %s' % (self._controller, self.pos, e))
             return True
 
 
@@ -617,7 +617,7 @@ def draw_background_grid(surf, gameobj):
     margin = 15
     hide_color_count = 4
     accent_color_count = 2
-    idxs = range(x_count * y_count)
+    idxs = list(range(x_count * y_count))
     random.shuffle(idxs)
     hide_idxs = idxs[:hide_color_count]
     accent_idxs = idxs[-accent_color_count:]
@@ -952,21 +952,21 @@ class SnakeGame(gnppygame.GameWithStates):
         for joy in self.joys:
             if joy:
                 joy.set_deadzone(CFG.Input.JoyDeadzone)
-        print 'Found %d total joystick(s)' % len([j for j in self.joys if j is not None])
+        print('Found %d total joystick(s)' % len([j for j in self.joys if j is not None]))
 
         # Input configs
-        print 'init InputConfigs'
+        print('init InputConfigs')
         self.input_configs = input_config_factory(self.joys)
         for c in self.input_configs:
-            print '\tAvail input config: ', c.name
+            print('\tAvail input config: ', c.name)
 
         # player and AI controllers
         if not CFG.Debug.On:
             try:
                 self._controllers = load_player_controllers(self.input_configs)
             except Exception as e:
-                print 'WARNING: Problem loading previous player list from %s. Exception: %s' % (CFG.Player.Filename, type(e))
-                print traceback.print_exc()
+                print('WARNING: Problem loading previous player list from %s. Exception: %s' % (CFG.Player.Filename, type(e)))
+                print(traceback.print_exc())
                 self._controllers = []
         else:
             self._controllers = []
@@ -1136,7 +1136,7 @@ class MainGameState(gnppygame.GameState):
         self._surface_eraser = pygame.Surface(display.get_size(), 0, display)
         self._surface_eraser.fill(CFG.Win.BackgroundColorRGB)
         if CFG.Background.Visible:
-            draw_bg_func = self.owner().background_chooser.next()
+            draw_bg_func = next(self.owner().background_chooser)
             draw_bg_func(self._surface_eraser, self.owner())
 
         # Reset frame timer because the background drawing could take so long,
@@ -1213,7 +1213,7 @@ class MainGameState(gnppygame.GameState):
     def begin_state(self):
         """Called right as state beings. Meant to be overridden by subclasses."""
         super(MainGameState, self).begin_state()
-        print 'start round'
+        print('start round')
 
         shrink_time = 0.5 if CFG.Debug.On else 4.8
         for snake in self.alive_snakes:
@@ -1289,10 +1289,10 @@ class MainGameState(gnppygame.GameState):
         pass
 
     def end_round(self):
-        print 'end round'
+        print('end round')
         self.round_over = True
         # self.owner().font_mgr.draw(screen, 'arial', 16, '%s crashed' % ', '.join(whoCrashed), pygame.Rect((0, 280), (self.owner().get_screen_rect().width, 40)), kBlack, 'center', 'center')
-        print 'Game State FPS: %.4f (time: %.3f ticks: %d)' % (self._fps_timer.get_total_fps(), self._fps_timer.get_total_time(), self._fps_timer.get_total_ticks())
+        print('Game State FPS: %.4f (time: %.3f ticks: %d)' % (self._fps_timer.get_total_fps(), self._fps_timer.get_total_time(), self._fps_timer.get_total_ticks()))
         if CFG.Profiler.On:
             self.owner().request_exit()
         else:
@@ -1318,7 +1318,7 @@ class MainGameState(gnppygame.GameState):
                     
                 for idx, snake in enumerate(self.alive_snakes):
                     if snake.is_dead(self.game_surface):
-                        print 'Snake %s is dead.' % snake._controller._name
+                        print('Snake %s is dead.' % snake._controller._name)
                         self.actors.append(snake.make_explosion())
                         self.owner().audio_mgr.play('EXPLODE')
                         crashed.append(snake)
@@ -1497,7 +1497,7 @@ class ReadyAimRound(MainGameState):
             try:
                 clr = game_surface.get_at(self.pos.AsIntTuple())
             except IndexError as e:
-                print 'Bullet went offscreen at ' + self.pos.AsIntTuple() + ' Exception: ' + e
+                print('Bullet went offscreen at ' + self.pos.AsIntTuple() + ' Exception: ' + e)
                 return True
             touching = clr not in (CFG.Win.BackgroundColorRGB, CFG.Win.BorderColorRGB)
             return touching
@@ -1961,9 +1961,9 @@ class PlayerRegistrationState(gnppygame.GameState):
         events = self.hold_watcher.get(pygame.event.get(), time_delta)
         events = self.joy_watcher.get(events)
         for e in events:
-            if e.type != pygame.JOYAXISMOTION: print 'EVENT:', e
+            if e.type != pygame.JOYAXISMOTION: print('EVENT:', e)
             if e.type == pygame.KEYDOWN and e.key == pygame.K_F5:
-                print 'Clearing player list'
+                print('Clearing player list')
                 self.owner()._controllers = []
             if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and self.can_start_game():
                 self.start_game()
@@ -1973,7 +1973,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 for ic in self.owner().input_configs:
                     if ic not in used_input_configs:
                         unused_input_configs.add(ic)
-                print 'InputConfigs: all/used/unused: %d / %d / %d' % (len(self.owner().input_configs), len(used_input_configs), len(unused_input_configs))
+                print('InputConfigs: all/used/unused: %d / %d / %d' % (len(self.owner().input_configs), len(used_input_configs), len(unused_input_configs)))
                 # handle input of players who are already registered
                 for controller in self.owner()._controllers:
                     input_config = controller._input_config
@@ -1989,7 +1989,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                             dirty = True
                         elif result == InputConfig.REMOVE_PLAYER:
                             self.owner().audio_mgr.play('HAMMER')
-                            print 'removing %s via %s' % (controller._name, input_config.name)
+                            print('removing %s via %s' % (controller._name, input_config.name))
                             self.owner()._controllers.remove(controller)
                             dirty = True
                         break
@@ -1998,19 +1998,19 @@ class PlayerRegistrationState(gnppygame.GameState):
                     for input_config in unused_input_configs:
                         if input_config.parse_event(e) in (InputConfig.TURN_RIGHT, InputConfig.TURN_LEFT):
                             self.owner().audio_mgr.play('Blip')
-                            print 'Adding player from', e
+                            print('Adding player from', e)
                             self.owner()._controllers.append(PlayerController(self.names.get_random(), self.colors.get_random(), None, input_config))
                             dirty = True
                             break
         if dirty:
-            print '-' * 20, 'Press button or move stick that you want to use for input'
+            print('-' * 20, 'Press button or move stick that you want to use for input')
             for c in self.owner()._controllers:
-                print c._name, c._color, c._input_config.name
+                print(c._name, c._color, c._input_config.name)
 
 
     def start_game(self):
         save_player_controllers(self.owner()._controllers)
-        print 'Starting game...'
+        print('Starting game...')
 
         # now that the player list is set, set controller indexes
         for idx, c in enumerate(self.owner()._controllers):
@@ -2082,7 +2082,7 @@ class ShowScoreState(HitSpacebarToContinueState):
         self.prevState = prev_state
 
     def begin_state(self):
-        print 'entered ShowScoreState'
+        print('entered ShowScoreState')
         HitSpacebarToContinueState.begin_state(self)
 
     def step_and_draw_scoreboard(self, time_delta, surface):
@@ -2111,9 +2111,9 @@ if __name__ == '__main__':
         profiler = gnpprofile.Profiler(_game.run_game_loop)
         # print profiler.get_default_report()
         # print profiler.data_as_csv()
-        print profiler.get_summary_report(8)
+        print(profiler.get_summary_report(8))
     else:
         _game.run_game_loop()
-        print 'Time: %f' % _game._frame_timer.get_total_time()
-        print 'FPS:  %f' % _game._frame_timer.get_total_fps()
+        print('Time: %f' % _game._frame_timer.get_total_time())
+        print('FPS:  %f' % _game._frame_timer.get_total_fps())
 

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="arc_arena",
-    version="1.0.0",
+    version="2.0.0",
     description="Survive longer than your foes in the arena! A hotseat game that supports a large number of players on one screen.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -19,7 +19,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
 
@@ -27,9 +27,9 @@ setuptools.setup(
         "arc_arena": ["resources/images/*", "resources/sounds/*"],
     },
 
-    python_requires='>=2.7',
+    python_requires='>=3.7',
     install_requires=[
         # 3rd party dependencies
-        "gnp_pygame @ http://github.com/SirGnip/gnp_pygame/tarball/v1.0.0#egg=package-1.0",
+        "gnp_pygame @ http://github.com/SirGnip/gnp_pygame/tarball/v2.0.0#egg=package-1.0",
     ],
 )
