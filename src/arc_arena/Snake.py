@@ -1,5 +1,5 @@
 import sys
-import os.path
+from pathlib import Path
 import pygame
 from gnp_pygame import gnppygame
 from gnp_pygame import gnpactor
@@ -973,10 +973,10 @@ class SnakeGame(gnppygame.GameWithStates):
             self._controllers = []
 
         # audio manager
-        self.audio_mgr = gnppygame.AudioManager(_resource_path + '/sounds')
+        self.audio_mgr = gnppygame.AudioManager(_resource_path / 'sounds')
         self.audio_mgr.enable_sfx(CFG.Sound.EnableSFX)
         # self.audio_mgr.enable_music(CFG.Sound.EnableMusic)
-        # self.audio_mgr.load_music(_resource_path + '/music/MySong.mp3')
+        # self.audio_mgr.load_music(_resource_path / '/music/MySong.mp3')
         # self.audio_mgr.play_music(-1)
         # startup sound
         self.audio_mgr.play('SOUND243')
@@ -2060,7 +2060,7 @@ class PlayerRegistrationState(gnppygame.GameState):
 class TitleScreenState(PlayerRegistrationState):
     def begin_state(self):
         PlayerRegistrationState.begin_state(self)
-        self.__img = pygame.image.load(_resource_path + '/images/SnakeTitle.bmp')
+        self.__img = pygame.image.load(str(_resource_path / 'images/SnakeTitle.bmp'))
         self.screen = pygame.display.get_surface()
         self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, gnppygame.RED, 1.2, 255, 0)
 
@@ -2105,14 +2105,14 @@ class ShowScoreState(HitSpacebarToContinueState):
 
 if __name__ == '__main__':
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        _resource_path = os.path.join(sys._MEIPASS, 'resources')  # path relative to root of PyInstaller bundle
-        _local_path = os.path.dirname(sys.executable)  # directory the exe lives in
+        _resource_path = Path(sys._MEIPASS, 'resources')  # path relative to root of PyInstaller bundle
+        _local_path = Path(sys.executable).parent  # directory the exe lives in
     else:
-        _resource_path = os.path.dirname(os.path.abspath(__file__)) + '/resources'  # path relative to script file
-        _local_path = os.path.dirname(os.path.abspath(__file__))
+        _resource_path = Path(__file__).resolve().parent / 'resources'  # path relative to script file
+        _local_path = Path(__file__).resolve().parent / 'resources'
     print("_resource_path:", _resource_path)
     print("_local_path:", _local_path)
-    CFG.Player.Filename = os.path.join(_local_path, CFG.Player.Filename)
+    CFG.Player.Filename = Path(_local_path, CFG.Player.Filename)
 
     _game = SnakeGame()  # global variable
 
