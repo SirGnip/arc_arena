@@ -1,3 +1,4 @@
+import sys
 import os.path
 import pygame
 from gnp_pygame import gnppygame
@@ -2102,10 +2103,19 @@ class ShowScoreState(HitSpacebarToContinueState):
         HitSpacebarToContinueState.step(self, time_delta)
 
 
-##### MAINLINE
-_resource_path = os.path.dirname(os.path.abspath(__file__)) + '/resources' # global variable
-_game = SnakeGame() # global variable
 if __name__ == '__main__':
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        _resource_path = os.path.join(sys._MEIPASS, 'resources')  # path relative to root of PyInstaller bundle
+        _local_path = os.path.dirname(sys.executable)  # directory the exe lives in
+    else:
+        _resource_path = os.path.dirname(os.path.abspath(__file__)) + '/resources'  # path relative to script file
+        _local_path = os.path.dirname(os.path.abspath(__file__))
+    print("_resource_path:", _resource_path)
+    print("_local_path:", _local_path)
+    CFG.Player.Filename = os.path.join(_local_path, CFG.Player.Filename)
+
+    _game = SnakeGame()  # global variable
+
     if CFG.Profiler.On:
         import gnpprofile
         profiler = gnpprofile.Profiler(_game.run_game_loop)
