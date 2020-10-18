@@ -104,7 +104,7 @@ class Win:
     # HD resolution
     ResolutionX = 1280
     ResolutionY = 720
-    Fullscreen = True
+    Fullscreen = False
     BackgroundColorIdx = 100
     BackgroundColorRGB = (0, 0, 0)
     FirstColorIdx = 105

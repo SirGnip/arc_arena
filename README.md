@@ -11,7 +11,7 @@ Good reflexes and an ability to handle the pressure will help you show those on 
 # Installation
 
     pip install git+https://github.com/SirGnip/arc_arena.git
-    python -m arc_arena.Snake
+    python -m arc_arena.arc_game
     
 ## ...for local development
 
@@ -21,12 +21,13 @@ Good reflexes and an ability to handle the pressure will help you show those on 
     py -3.7 -m venv venv
     source venv/Scripts/activate
     pip install -e .
-    python -m arc_arena.Snake
+    python -m arc_arena.arc_game
 
 
 # Bundling into one-file executable with PyInstaller
 
-    pyinstaller src\arc_arena\Snake.py --add-data 'resources;resources' --onefile
+    pip install pyinstaller
+    pyinstaller src/arc_arena/arc_game.py --name ArcArena --add-data 'resources;resources' --onefile
 
 
 # Revision History

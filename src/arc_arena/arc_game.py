@@ -9,13 +9,13 @@ import functools
 import random
 from gnp_pygame import gnipMath
 from gnp_pygame import gnpinput
-from arc_arena import SnakeSettings
+from arc_arena import settings
 import copy
 import pickle
 import traceback
 
 
-CFG = SnakeSettings  # quick alias
+CFG = settings  # quick alias
 
 
 class ColorIdxAndRGB(object):
