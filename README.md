@@ -27,7 +27,7 @@ Good reflexes and an ability to handle the pressure will help you show those on 
 # Bundling into one-file executable with PyInstaller
 
     pip install pyinstaller
-    pyinstaller src/arc_arena/arc_game.py --name ArcArena --add-data 'resources;resources' --onefile
+    pyinstaller src/arc_arena/arc_game.py --name ArcArena --add-data 'src/arc_arena/resources;resources' --onefile
 
 
 # Revision History

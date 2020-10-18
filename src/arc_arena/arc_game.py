@@ -2106,10 +2106,12 @@ class ShowScoreState(HitSpacebarToContinueState):
 if __name__ == '__main__':
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         _resource_path = Path(sys._MEIPASS, 'resources')  # path relative to root of PyInstaller bundle
-        _local_path = Path(sys.executable).parent  # directory the exe lives in
+        _local_path = Path(sys.executable).parent  # directory the bundle exe lives in
     else:
-        _resource_path = Path(__file__).resolve().parent.parent.parent / 'resources'  # path relative to script file
-        _local_path = Path(__file__).resolve().parent.parent.parent
+        _resource_path = Path(__file__).resolve().parent / 'resources'  # path relative to script file
+        # for local checkout: _local_path is at top of repo
+        # for install from GitHub: _local_path is one dir above venv/
+        _local_path = Path(sys.executable).resolve().parent.parent.parent  # one dir above venv\
     print("_resource_path:", _resource_path)
     print("_local_path:", _local_path)
     CFG.Player.Filename = Path(_local_path, CFG.Player.Filename)
