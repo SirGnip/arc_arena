@@ -2108,8 +2108,8 @@ if __name__ == '__main__':
         _resource_path = Path(sys._MEIPASS, 'resources')  # path relative to root of PyInstaller bundle
         _local_path = Path(sys.executable).parent  # directory the exe lives in
     else:
-        _resource_path = Path(__file__).resolve().parent / 'resources'  # path relative to script file
-        _local_path = Path(__file__).resolve().parent / 'resources'
+        _resource_path = Path(__file__).resolve().parent.parent.parent / 'resources'  # path relative to script file
+        _local_path = Path(__file__).resolve().parent.parent.parent
     print("_resource_path:", _resource_path)
     print("_local_path:", _local_path)
     CFG.Player.Filename = Path(_local_path, CFG.Player.Filename)

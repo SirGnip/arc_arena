@@ -26,7 +26,7 @@ Good reflexes and an ability to handle the pressure will help you show those on 
 
 # Bundling into one-file executable with PyInstaller
 
-    pyinstaller src\arc_arena\Snake.py --add-data 'src\arc_arena\resources;resources' --onefile
+    pyinstaller src\arc_arena\Snake.py --add-data 'resources;resources' --onefile
 
 
 # Revision History
