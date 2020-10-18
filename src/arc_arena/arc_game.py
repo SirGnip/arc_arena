@@ -68,15 +68,15 @@ def _alphaize(color, alpha):
     return (color[0], color[1], color[2], alpha)
 
 
-def load_player_controllers(input_configs):
+def load_player_controllers(joys):
     def persistent_load(persist_id):
         try:
-            print('\tUnpickling with persist_id: "%s"' % persist_id)
-            for ic in input_configs:
-                if ic.get_pickle_persist_id() == persist_id:
-                    print('\tUnpickled %s "%s"' % (type(ic).__name__, ic.get_pickle_persist_id()))
-                    return ic
-            raise pickle.UnpicklingError('Unable to find matching InputConfig with id: %s' % ic.get_pickle_persist_id())
+            print('\tUnpickling with persist_id: "%s"' % str(persist_id))
+            for joy in joys:
+                if joy is not None and (joy._joy.get_id(), joy._joy.get_name()) == persist_id:
+                    print('\tUnpickled %s "%s"' % (type(joy).__name__, joy._joy.get_id()))
+                    return joy
+            raise pickle.UnpicklingError('Unable to find matching gnppygame.Joy object with id: %s' % str(persist_id))
         except Exception as exc:
             raise pickle.UnpicklingError('Unable to use persistent id (%s) to unpickle external object. Exception type:%s %s' % (persist_id, type(exc).__name__, str(exc)))
 
@@ -89,10 +89,16 @@ def load_player_controllers(input_configs):
 
 
 def save_player_controllers(controllers):
+    # Need to use a persistent_id as the pygame's Joystick class isn't pickleable.
     def persistent_id(obj):
-        if isinstance(obj, InputConfig):
-            print('Pickling %s with custom persist_id: "%s"' % (type(obj), obj.get_pickle_persist_id()))
-            return obj.get_pickle_persist_id()
+        if isinstance(obj, gnppygame.Joy):
+            # For persist_id combine id *and* name, as id alone would have chance to accidentally mismatch joystick ID's
+            # if some joysticks are added/unplugged when game is restarted. Too easy for simple id's to match up. Added
+            # name to the persist_id to make it more likely that if controllers have been added/removed, the (id, name)
+            # would not match something, causing the load to fail, which is reasonable when joysticks are added/removed.
+            persist_id = (obj._joy.get_id(), obj._joy.get_name())
+            print('Pickling %s with custom persist_id: "%s"' % (type(obj), persist_id))
+            return persist_id
         return None
 
     # save player list to disk
@@ -436,10 +442,6 @@ class InputConfig(object):
     def __init__(self):
         raise NotImplementedError
 
-    def get_pickle_persist_id(self):
-        """Generate ID used for pickling"""
-        return self.name
-
     def input(self):
         """Input routine for game. Polls state of input each frame of the game."""
         raise NotImplementedError
@@ -554,34 +556,6 @@ class JoystickInputConfig(InputConfig):
                 return self.TURN_RIGHT
 
         return None
-
-
-def input_config_factory(joysticks):
-    """Return data structure of available input configs"""
-    cfgs = [
-        KeyboardInputConfig('Keys: Z X', pygame.K_z, pygame.K_x),
-        KeyboardInputConfig('Keys: B N', pygame.K_b, pygame.K_n),
-        KeyboardInputConfig('Keys: . /', pygame.K_PERIOD, pygame.K_SLASH),
-        KeyboardInputConfig('Keys: R T', pygame.K_r, pygame.K_t),
-        KeyboardInputConfig('Keys: 1 Q', pygame.K_1, pygame.K_q),
-        KeyboardInputConfig('Keys: P -', pygame.K_p, pygame.K_MINUS),
-        KeyboardInputConfig('Keys: L & R arrows', pygame.K_LEFT, pygame.K_RIGHT),
-        MouseInputConfig('Mouse: L & R buttons')
-    ]
-    for joy in [j for j in joysticks if j is not None]:
-        # single player, two hands
-        if joy.btn_shoulder_left1 is not None and joy.btn_shoulder_right1 is not None:
-            cfgs.append(JoystickInputConfig('Joy%d: Shoulder L & R' % joy._joy.get_id(), joy, (joy.btn_shoulder_left1, joy.btn_shoulder_right1)))
-        # single player, two hands
-        if joy.btn_hat_up is not None and joy.btn_face_up is not None:
-            cfgs.append(JoystickInputConfig('Joy%d: DPadU & FaceU' % joy._joy.get_id(), joy, (joy.btn_hat_up, joy.btn_face_up)))
-        # two players, hand on left
-        if joy.btn_hat_left is not None and joy.btn_hat_down is not None:
-            cfgs.append(JoystickInputConfig('Joy%d: DPadL & DPadD' % joy._joy.get_id(), joy, (joy.btn_hat_left, joy.btn_hat_down)))
-        # two players, hand on right
-        if joy.btn_face_down is not None and joy.btn_face_right is not None:
-            cfgs.append(JoystickInputConfig('Joy%d: FaceD & FaceR' % joy._joy.get_id(), joy, (joy.btn_face_down, joy.btn_face_right)))
-    return cfgs
 
 
 class Controller(object):
@@ -955,16 +929,10 @@ class ArcGame(gnppygame.GameWithStates):
                 joy.set_deadzone(CFG.Input.JoyDeadzone)
         print('Found %d total joystick(s)' % len([j for j in self.joys if j is not None]))
 
-        # Input configs
-        print('init InputConfigs')
-        self.input_configs = input_config_factory(self.joys)
-        for c in self.input_configs:
-            print('\tAvail input config: ', c.name)
-
         # player and AI controllers
         if not CFG.Debug.On:
             try:
-                self._controllers = load_player_controllers(self.input_configs)
+                self._controllers = load_player_controllers(self.joys)
             except Exception as e:
                 print('WARNING: Problem loading previous player list from %s. Exception: %s' % (CFG.Player.Filename, type(e)))
                 print(traceback.print_exc())
@@ -1216,13 +1184,14 @@ class MainGameState(gnppygame.GameState):
         super(MainGameState, self).begin_state()
         print('start round')
 
-        shrink_time = 0.5 if CFG.Debug.On else 4.8
+        shrink_time = 0.5 if CFG.Debug.On else 0.5
         for snake in self.alive_snakes:
             color = _darken_color(snake.body_color.rgb, 0.5)
             self.actors.append(gnpactor.GrowingCircle(snake.pos, 40.0, 0.0, color, shrink_time))
 
         # trigger stutter-start beginning snake animation
         start_delta = 0.1 if CFG.Debug.On else CFG.Round.StartDelta
+        start_delta = 0.1 if CFG.Debug.On else 0.2
         self.on_timer_first_step(play_beep=False)
         _game.timers.add(1 * start_delta, self.on_timer_first_step)
         _game.timers.add(2 * start_delta, self.on_timer_first_step)
@@ -1920,8 +1889,13 @@ class PlayerRegistrationState(gnppygame.GameState):
         else:
             self.joy_watcher = gnpinput.AxisWatcher(len(axis_counts), max(axis_counts), press_threshold, release_threshold)
 
+        self.header = ''
+        self.event = None
+        self.script = self.reg_script()
+        next(self.script)  # let script init itself
+
     def draw_press_number_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, '- Register new players and change their name/color by pressing buttons/sticks. Tap SPACE to start. F5 to clear. -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, '- Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Tap SPACE to start. -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1958,23 +1932,21 @@ class PlayerRegistrationState(gnppygame.GameState):
             return True
 
     def input(self, time_delta):
+        """Call each frame to process input"""
         dirty = False
         events = self.hold_watcher.get(pygame.event.get(), time_delta)
         events = self.joy_watcher.get(events)
         for e in events:
             if e.type != pygame.JOYAXISMOTION: print('EVENT:', e)
             if e.type == pygame.KEYDOWN and e.key == pygame.K_F5:
-                print('Clearing player list')
-                self.owner()._controllers = []
+                print('Clearing last player from list')
+                ctrls = self.owner()._controllers
+                if len(ctrls) > 0:
+                    ctrls.pop(len(ctrls) - 1)
+                continue  # prevent "else" clause below from handling F5 event
             if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and self.can_start_game():
                 self.start_game()
             else:
-                unused_input_configs = set()
-                used_input_configs = set([c._input_config for c in self.owner()._controllers])
-                for ic in self.owner().input_configs:
-                    if ic not in used_input_configs:
-                        unused_input_configs.add(ic)
-                print('InputConfigs: all/used/unused: %d / %d / %d' % (len(self.owner().input_configs), len(used_input_configs), len(unused_input_configs)))
                 # handle input of players who are already registered
                 for controller in self.owner()._controllers:
                     input_config = controller._input_config
@@ -1995,19 +1967,15 @@ class PlayerRegistrationState(gnppygame.GameState):
                             dirty = True
                         break
                 else:  # else clause on for loop is executed when no "break" statement was encountered
-                    # register new players
-                    for input_config in unused_input_configs:
-                        if input_config.parse_event(e) in (InputConfig.TURN_RIGHT, InputConfig.TURN_LEFT):
-                            self.owner().audio_mgr.play('Blip')
-                            print('Adding player from', e)
-                            self.owner()._controllers.append(PlayerController(self.names.get_random(), self.colors.get_random(), None, input_config))
-                            dirty = True
-                            break
+                    # advance "register new players" input handler
+                    self.event = e  # can i pass an event to the generator script in a different way? coroutine?
+                    next(self.script)
+                    dirty = True
+
         if dirty:
             print('-' * 20, 'Press button or move stick that you want to use for input')
             for c in self.owner()._controllers:
                 print(c._name, c._color, c._input_config.name)
-
 
     def start_game(self):
         save_player_controllers(self.owner()._controllers)
@@ -2049,14 +2017,82 @@ class PlayerRegistrationState(gnppygame.GameState):
             self.owner()._controllers.append(PlayerController('ThirdSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx+4, CFG.Player.Colors[4]), None, self.owner().input_configs[2]))
             self.start_game()
         else:
+            # advance the logic that handles new player input registration, name and color changes
             self.input(time_delta)
+
             s = pygame.display.get_surface()
             self.draw_player_list(s)
             self.draw_press_number_text()
             self._actors.draw(s)
+
+            self.owner().font_mgr.draw(s, 'arial', 24, self.header, self.owner().get_screen_rect(), gnppygame.RED, 'center', 'top')
             pygame.display.update()
 
-    
+    def reg_script(self):
+        """Generator-based "script" that drives player checkin and input config"""
+        # Called for each event that isn't processed by .input()
+
+        while True:
+            self.header = 'Add a new player. Start by pressing a button to be their LEFT control.'
+
+            yield from wait_until(lambda: self.event and self.event.type in (
+            pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN))
+            joy_msg = ''
+            device = ''
+            if self.event.type == pygame.KEYDOWN:
+                device = 'keyboard'
+            elif self.event.type == pygame.MOUSEBUTTONDOWN:
+                device = 'mouse'
+            elif self.event.type == pygame.JOYBUTTONDOWN:
+                device = 'gamepad'
+                j = self.owner().joys[self.event.joy]
+                joy_msg = f'{j._joy.get_name().strip()} #{j._joy.get_id()}'
+            left_event = self.event
+            self.header = f'Complete addition of new player by pressing a button on the {device} {joy_msg} to be player\'s RIGHT control.'
+            yield  # consume the event that was handled above by yielding control
+
+            yield from wait_until(lambda: is_event_on_same_device_and_not_same_button(left_event, self.event))
+            right_event = self.event
+            self.owner().audio_mgr.play('Blip')
+            if device == 'keyboard':
+                input_cfg = KeyboardInputConfig(f'{device} config {left_event.unicode} / {right_event.unicode}', left_event.key, right_event.key)
+            elif device == 'mouse':
+                input_cfg = MouseInputConfig(f'{device} config {left_event.button}/{right_event.button}')
+            elif device == 'gamepad':
+                cur_joy = self.owner().joys[self.event.joy]
+                desc = f'{cur_joy._joy.get_name().strip()} #{cur_joy._joy.get_id()} config {left_event.button}/{right_event.button}'
+                input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
+            else:
+                raise Exception(f'Unknown device: {device}')
+            self.owner()._controllers.append(
+                PlayerController(self.names.get_random(), self.colors.get_random(), None, input_cfg))
+            yield  # consume the event that was handled above by yielding control
+
+
+def is_event_on_same_device_and_not_same_button(orig_event, other_event):
+    """Test if other_event is a compatible event for orig_event: same device, not using same button."""
+    if orig_event is None or other_event is None:
+        return False
+
+    if orig_event.type == other_event.type:
+        if orig_event.type == pygame.KEYDOWN:
+            return orig_event.key != other_event.key
+        elif orig_event.type == pygame.MOUSEBUTTONDOWN:
+            return orig_event.button != other_event.button
+        elif orig_event.type == pygame.JOYBUTTONDOWN:
+            return orig_event.joy == other_event.joy and orig_event.button != other_event.button
+        raise Exception(f'Trying to compare events of unexpected types: {orig_event} {other_event}')
+    return False
+
+
+def wait_until(predicate):
+    """generator that blocks until the given predicate evaluates to true"""
+    while True:
+        if predicate():
+            break
+        yield
+
+
 class TitleScreenState(PlayerRegistrationState):
     def begin_state(self):
         PlayerRegistrationState.begin_state(self)
