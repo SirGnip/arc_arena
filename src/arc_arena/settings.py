@@ -2,7 +2,7 @@ from gnp_pygame.gnppygame import *
 
 
 class Player:
-    Filename = 'Snake.lastPlayers'
+    Filename = 'ArcArena.lastPlayers'
 
     Names = (
         'Aladdin',
@@ -188,7 +188,7 @@ class AppleRushRound:
     AppleRadius = AppleRound.AppleRadius
     AppleColor = AppleRound.AppleColor
 
-class TurboSnakeRound:
+class TurboArcRound:
     Speed = 120
     GapSize = Snake.GapSize * 2
 

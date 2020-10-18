@@ -286,7 +286,7 @@ class Apple(object):
 
 
 class Snake(object):
-    """Object representing the snake that the player controls
+    """Object representing the arc that the player controls
     NOTE:
     If the snake velocity is high and the frame rate is slow, you'll see
     unintentional gaps in the snake.
@@ -911,13 +911,13 @@ def draw_background_horiz_lines(surf, gameobj):
         pygame.draw.line(surf, random.choice(colors), (x, y), (x+length, y), thickness)
 
 
-class SnakeGame(gnppygame.GameWithStates):
+class ArcGame(gnppygame.GameWithStates):
     def __init__(self):
         # call parent ctor
         self.round_idx = 0
         gnppygame.GameWithStates.__init__(
                 self,
-                'Snake',
+                'Arc Arena',
                 (CFG.Win.ResolutionX, CFG.Win.ResolutionY),
                 CFG.Win.Fullscreen)
 
@@ -990,17 +990,17 @@ class SnakeGame(gnppygame.GameWithStates):
             ScatterRound,
             AppleRound,
             NoGapRound,
-            TurboSnakeRound,
+            TurboArcRound,
             DizzyRoundMode,
             IndigestionRound,
             ReadyAimRound,
             SqueezeRound,
-            TurboSnakeRound,
+            TurboArcRound,
             ColorBlindRound,
             AppleRushRound,
             RightTurnOnlyRound,
             BoostRound,
-            TurboSnakeRound,
+            TurboArcRound,
             FollowerRound,
             AlternateTurnsRound,
             ReadyAimRound,
@@ -1016,7 +1016,7 @@ class SnakeGame(gnppygame.GameWithStates):
             BasicRound,
             AppleRound,
             ScatterRound,
-            TurboSnakeRound,
+            TurboArcRound,
         )
 
         custom_rounds = (
@@ -1028,7 +1028,7 @@ class SnakeGame(gnppygame.GameWithStates):
             ScatterRound,
             NoGapRound,
             BasicRound,
-            TurboSnakeRound,
+            TurboArcRound,
             DizzyRoundMode,
             ScatterRound,
             IndigestionRound,
@@ -1110,7 +1110,7 @@ def make_palette(colors):
     for color in colors:
         pal[idx] = color
         idx += 1
-    # asserts for sanity checks on values in SnakeSettings.py
+    # asserts for sanity checks on values in settings.py
     assert pal[CFG.Win.BackgroundColorIdx] == CFG.Win.BackgroundColorRGB
     assert pal[CFG.Win.BorderColorIdx] == CFG.Win.BorderColorRGB
     assert pal[CFG.Snake.HeadColorIdx] == CFG.Snake.HeadColorRGB
@@ -1415,15 +1415,15 @@ class AppleRushRound(MainGameState):
         self._apples.draw(surface)
 
 
-class TurboSnakeRound(MainGameState):
+class TurboArcRound(MainGameState):
     """Speed up snake and increase gap size"""
-    _LABEL = 'Turbo Snake'
+    _LABEL = 'Turbo Arc'
 
     def __init__(self, game_obj):
-        super(TurboSnakeRound, self).__init__(game_obj)
+        super(TurboArcRound, self).__init__(game_obj)
         for snake in self.alive_snakes:
-            snake.set_initial_speed(CFG.TurboSnakeRound.Speed)
-            snake.gap_size = CFG.TurboSnakeRound.GapSize
+            snake.set_initial_speed(CFG.TurboArcRound.Speed)
+            snake.gap_size = CFG.TurboArcRound.GapSize
 
 
 class ColorBlindRound(MainGameState):
@@ -1457,7 +1457,7 @@ class IndigestionRound(MainGameState):
         # phaseShift is so sine wave starts at minimum value
         self._wave = gnipMath.cSineWave(CFG.IndigestionRound.CycleInSeconds, gnipMath.cRange(2.0, 8.0), phaseShift=.75)
         for snake in self.alive_snakes:
-            snake.gap_size = CFG.TurboSnakeRound.GapSize
+            snake.gap_size = CFG.TurboArcRound.GapSize
 
     def step(self, time_delta):
         super(IndigestionRound, self).step(time_delta)
@@ -2114,7 +2114,7 @@ if __name__ == '__main__':
     print("_local_path:", _local_path)
     CFG.Player.Filename = Path(_local_path, CFG.Player.Filename)
 
-    _game = SnakeGame()  # global variable
+    _game = ArcGame()  # global variable
 
     if CFG.Profiler.On:
         import gnpprofile
