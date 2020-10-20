@@ -1915,6 +1915,11 @@ class PlayerRegistrationState(gnppygame.GameState):
         if len(self.owner()._controllers) == 0:
             return False
 
+        if self.player_registration_in_flight:
+            print('Cant start game while a player registration is in progress')
+            self.owner().audio_mgr.play('HAMMER')
+            return False
+
         if CFG.Player.RequireUniqueColors:
             colors = [c._color for c in self.owner()._controllers]
             count = len(colors)
@@ -1949,14 +1954,22 @@ class PlayerRegistrationState(gnppygame.GameState):
         for e in events:
             if e.type != pygame.JOYAXISMOTION: print('EVENT:', e)
             if e.type == pygame.KEYDOWN and e.key == pygame.K_F5:
-                print('Clearing last player from list')
-                ctrls = self.owner()._controllers
-                if len(ctrls) > 0:
-                    ctrls.pop(len(ctrls) - 1)
-                continue  # prevent "else" clause below from handling F5 event
+                # don't delete player while a new registration is taking place
+                if not self.player_registration_in_flight:
+                    print('Clearing last player from list')
+                    self.owner().audio_mgr.play('HAMMER')
+                    ctrls = self.owner()._controllers
+                    if len(ctrls) > 0:
+                        ctrls.pop(len(ctrls) - 1)
+                    continue  # prevent "else" clause below from handling F5 event
             if e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE and self.can_start_game():
                 self.start_game()
             else:
+                # do not allow SPACE or F5 to be used for player input
+                if e.type == pygame.KEYDOWN and e.key in (pygame.K_SPACE, pygame.K_F5):
+                    self.owner().audio_mgr.play('HAMMER')
+                    continue
+
                 # handle input of players who are already registered
                 for controller in self.owner()._controllers:
                     input_config = controller._input_config
@@ -2041,12 +2054,15 @@ class PlayerRegistrationState(gnppygame.GameState):
     def reg_script(self):
         """Generator-based "script" that drives player checkin and input config"""
         # Called for each event that isn't processed by .input()
+        self.player_registration_in_flight = False
 
         while True:
             self.header = 'Add a new player. Start by pressing a button to be their LEFT control.'
 
             yield from wait_until(lambda: self.event and self.event.type in (
             pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN))
+            self.player_registration_in_flight = True
+            self.owner().audio_mgr.play('start')
             joy_msg = ''
             device = ''
             if self.event.type == pygame.KEYDOWN:
@@ -2084,6 +2100,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 raise Exception(f'Unknown device: {device}')
             self.owner()._controllers.append(
                 PlayerController(self.names.get_random(), self.colors.get_random(), None, input_cfg))
+            self.player_registration_in_flight = False
             yield  # consume the event that was handled above by yielding control
 
 
