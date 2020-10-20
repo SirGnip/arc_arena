@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import pygame
+import pygame.constants
 from gnp_pygame import gnppygame
 from gnp_pygame import gnpactor
 from gnp_pygame import gnpparticle
@@ -10,6 +11,7 @@ import random
 from gnp_pygame import gnipMath
 from gnp_pygame import gnpinput
 from arc_arena import settings
+import inspect
 import copy
 import pickle
 import traceback
@@ -1889,10 +1891,18 @@ class PlayerRegistrationState(gnppygame.GameState):
         else:
             self.joy_watcher = gnpinput.AxisWatcher(len(axis_counts), max(axis_counts), press_threshold, release_threshold)
 
+        # setup keyboard key id-to-name lookup map
+        key_constants = [(name, value) for name, value in inspect.getmembers(pygame.constants) if name.startswith('K_')]
+        self.key_name_lookup = {}
+        for key_name, key_id in key_constants:
+            key_name = key_name[2:]
+            self.key_name_lookup[key_id] = key_name
+
+        # start registration "script"
         self.header = ''
         self.event = None
         self.script = self.reg_script()
-        next(self.script)  # let script init itself
+        next(self.script)  # give script a chance to init itself
 
     def draw_press_number_text(self):
         self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, '- Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Tap SPACE to start. -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
@@ -2055,7 +2065,15 @@ class PlayerRegistrationState(gnppygame.GameState):
             right_event = self.event
             self.owner().audio_mgr.play('Blip')
             if device == 'keyboard':
-                input_cfg = KeyboardInputConfig(f'{device} config {left_event.unicode} / {right_event.unicode}', left_event.key, right_event.key)
+                # get string representations of keys that don't have a readable .unicode member
+                left_str = left_event.unicode
+                if len(left_str.strip()) == 0:
+                    left_str = self.key_name_lookup.get(left_event.key, '???').title()
+                right_str = right_event.unicode
+                if len(right_str.strip()) == 0:
+                    right_str = self.key_name_lookup.get(right_event.key, '???').title()
+
+                input_cfg = KeyboardInputConfig(f'{device} config {left_str} / {right_str}', left_event.key, right_event.key)
             elif device == 'mouse':
                 input_cfg = MouseInputConfig(f'{device} config {left_event.button}/{right_event.button}')
             elif device == 'gamepad':
