@@ -1186,14 +1186,13 @@ class MainGameState(gnppygame.GameState):
         super(MainGameState, self).begin_state()
         print('start round')
 
-        shrink_time = 0.5 if CFG.Debug.On else 0.5
+        shrink_time = 0.5 if CFG.Debug.On else 4.8
         for snake in self.alive_snakes:
             color = _darken_color(snake.body_color.rgb, 0.5)
             self.actors.append(gnpactor.GrowingCircle(snake.pos, 40.0, 0.0, color, shrink_time))
 
         # trigger stutter-start beginning snake animation
         start_delta = 0.1 if CFG.Debug.On else CFG.Round.StartDelta
-        start_delta = 0.1 if CFG.Debug.On else 0.2
         self.on_timer_first_step(play_beep=False)
         _game.timers.add(1 * start_delta, self.on_timer_first_step)
         _game.timers.add(2 * start_delta, self.on_timer_first_step)
@@ -1905,7 +1904,7 @@ class PlayerRegistrationState(gnppygame.GameState):
         next(self.script)  # give script a chance to init itself
 
     def draw_press_number_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, '- Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Tap SPACE to start. -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Tap SPACE to start.', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
