@@ -225,7 +225,7 @@ class Scoreboard(object):
         if cnt <= 6:
             top_cnt, btm_cnt = cnt, 0
         else:
-            top_cnt, btm_cnt = cnt/2 + cnt%2, cnt/2  # divide by 2, always add any remainder to top row
+            top_cnt, btm_cnt = cnt//2 + cnt%2, cnt//2  # divide by 2, always add any remainder to top row
         top_players = self._player_list[:top_cnt]  # "top" represents visual positioning, not score
         bottom_players = self._player_list[top_cnt:]  # "bottom" represents visual positioning, not score
         top_rects = gnppygame.split_rect_horizontally(self._display_rect_top, len(top_players))
