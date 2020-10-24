@@ -1996,7 +1996,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 self.start_game()
             else:
                 # do not allow SPACE or F5 to be used for player input
-                if e.type == pygame.KEYDOWN and e.key in (pygame.K_SPACE, pygame.K_F5):
+                if e.type == pygame.KEYDOWN and e.key in (pygame.K_SPACE, pygame.K_F5, pygame.K_ESCAPE):
                     self.owner().audio_mgr.play('HAMMER')
                     continue
 
