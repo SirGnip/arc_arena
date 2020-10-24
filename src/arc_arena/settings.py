@@ -104,7 +104,7 @@ class Win:
     # HD resolution
     ResolutionX = 1280
     ResolutionY = 720
-    Fullscreen = False
+    Fullscreen = True
     BackgroundColorIdx = 100
     BackgroundColorRGB = (0, 0, 0)
     FirstColorIdx = 105
@@ -113,7 +113,7 @@ class Win:
 
 class Background:
     Visible = True
-    RandomizeOrder = False
+    RandomizeOrder = True
     GridColor = (4, 0, 4)
     GridAccentColor = (4, 4, 0)
     CirclesAlpha = 3

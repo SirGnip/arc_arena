@@ -149,9 +149,9 @@ class ScoreboardPlayer(object):
         self.is_winner = False
 
     def draw(self, screen, draw_rect, elapsed):
-        _game.font_mgr.draw(screen, 'arial', 24, '%s: %d' % (self.name, self.score), draw_rect, self.color, 'center', 'top')
+        _game.font_mgr.draw(screen, _game.fnt, 24, '%s: %d' % (self.name, self.score), draw_rect, self.color, 'center', 'top')
         clr = self.color if not self.is_winner or self._winner_pulse.Get(elapsed) == 1 else self._dark_color
-        _game.font_mgr.draw(screen, 'arial', 24, '%+d' % self.score_delta, draw_rect.move(0, 30), clr, 'center', 'top')
+        _game.font_mgr.draw(screen, _game.fnt, 24, '%+d' % self.score_delta, draw_rect.move(0, 30), clr, 'center', 'top')
 
     def start_round(self):
         self.score_delta = 0
@@ -219,7 +219,7 @@ class Scoreboard(object):
         self._elapsed += time_delta
 
     def draw(self, screen):
-        _game.font_mgr.draw(screen, 'arial', 60, 'Round Over', _game.get_screen_rect(), gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 60, 'Round Over', _game.get_screen_rect(), gnppygame.WHITE, 'center', 'center')
         # player scores
         cnt = len(self._player_list)
         if cnt <= 6:
@@ -249,25 +249,25 @@ class Scoreboard(object):
         spacing = 40
         # Current round length
         longest_round_msg = 'Round time: %.1f seconds' % self._last_round_time
-        _game.font_mgr.draw(screen, 'arial', 24, longest_round_msg, rect, gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 24, longest_round_msg, rect, gnppygame.WHITE, 'center', 'center')
         # longest round length
         rect.move_ip(0, spacing)
         longest_round_players = self._max_round_time[1]
         players = ', '.join([p.name for p in longest_round_players])
         longest_round_msg = 'Longest round: %.1f seconds by %s' % (self._max_round_time[0], players)
-        _game.font_mgr.draw(screen, 'arial', 24, longest_round_msg, rect, gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 24, longest_round_msg, rect, gnppygame.WHITE, 'center', 'center')
         # current win streak
         rect.move_ip(0, spacing)
         win_streak = self._current_win_streak
         plyrs = ','.join([p.name for p in win_streak[1]])
         streak_msg = 'Current win streak: %d by %s' % (win_streak[0], plyrs)
-        _game.font_mgr.draw(screen, 'arial', 24, streak_msg, rect, gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 24, streak_msg, rect, gnppygame.WHITE, 'center', 'center')
         # longest win streak
         rect.move_ip(0, spacing)
         win_streak = self._max_win_streak
         plyrs = ','.join([p.name for p in win_streak[1]])
         streak_msg = 'Longest win streak: %d by %s' % (win_streak[0], plyrs)
-        _game.font_mgr.draw(screen, 'arial', 24, streak_msg, rect, gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 24, streak_msg, rect, gnppygame.WHITE, 'center', 'center')
 
 
 class Apple(object):
@@ -664,13 +664,31 @@ def draw_background_concentric_arcs(surf, gameobj):
             )
         )
 
+    def random_title_screen_clrs():
+        base_color = (6, 0, 29)
+        accent_color = (30, 0, 0)
+        return random.choice(
+            (
+                base_color,
+                base_color,
+                base_color,
+                base_color,
+                accent_color
+            )
+        )
+
     def draw_cirs(pos, starting_size, arc_count, step, start_factory, span_factory, line_width):
         rect = pygame.Rect(0, 0, starting_size, starting_size)
         rect.center = pos
         for size in range(arc_count):
             start_angle = start_factory()
             stop_angle = start_angle - span_factory()
-            color = random_blue_scarlet_clrs()
+            if gameobj is None:
+                # gameobj==None tells the class to use different colors, didn't have to change class signature
+                color = random_title_screen_clrs()
+            else:
+                color = random_blue_scarlet_clrs()
+
             pygame.draw.arc(surf, color, rect, start_angle, stop_angle, line_width)
             pygame.draw.arc(surf, color, rect.move(1, 0), start_angle, stop_angle, line_width)
             rect.inflate_ip(-step, -step)
@@ -788,7 +806,7 @@ def draw_background_player_names(surf, gameobj):
         sf.set_colorkey((0, 0, 0)) # surface with text doesn't have alpha, just a black background
         sf = sf.convert()
         point = gnipMath.cVector2.RandInRect(win)
-        gameobj.font_mgr.draw(sf, 'arial', 160, ctrl._name, (point+gnipMath.cVector2(-300, -50)).AsIntTuple(), (255, 255, 255), antialias=True)
+        gameobj.font_mgr.draw(sf, gameobj.fnt, 160, ctrl._name, (point+gnipMath.cVector2(-300, -50)).AsIntTuple(), (255, 255, 255), antialias=True)
         sf = pygame.transform.rotate(sf, 3)
         surf.blit(sf, (0, 0))
 
@@ -898,7 +916,8 @@ class ArcGame(gnppygame.GameWithStates):
                 CFG.Win.Fullscreen)
 
         self._init_mode_list()
-        self.font_mgr = gnppygame.FontManager((('arial', 160), ('arial', 60), ('arial', 24)))
+        self.fnt = str(_resource_path / 'fonts/Arista2.0.ttf')
+        self.font_mgr = gnppygame.FontManager(((self.fnt, 160), (self.fnt, 60), (self.fnt, 24)))
         self.timers = gnppygame.TimerManager()
         event_types = (gnpinput.HOLD, gnpinput.AXISPRESS, gnpinput.AXISRELEASE, pygame.USEREVENT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYAXISMOTION)
         pygame.event.set_allowed(event_types)  # set_allowed is additive
@@ -949,7 +968,6 @@ class ArcGame(gnppygame.GameWithStates):
         # self.audio_mgr.load_music(_resource_path / '/music/MySong.mp3')
         # self.audio_mgr.play_music(-1)
         # startup sound
-        self.audio_mgr.play('SOUND243')
 
         # set initial state
         self.change_state(TitleScreenState(self))
@@ -1144,7 +1162,7 @@ class MainGameState(gnppygame.GameState):
         if self._LABEL is not None:
             txt = TextActor(
                 game.font_mgr,
-                'arial',
+                game.fnt,
                 60,
                 self._LABEL,
                 game.get_screen_rect(),
@@ -1155,7 +1173,7 @@ class MainGameState(gnppygame.GameState):
             )
             txt_shadow = TextActor(
                 game.font_mgr,
-                'arial',
+                game.fnt,
                 60,
                 self._LABEL,
                 game.get_screen_rect().move(3, 3),
@@ -1170,7 +1188,7 @@ class MainGameState(gnppygame.GameState):
         if self._SUB_LABEL is not None:
             subtxt = TextActor(
                 game.font_mgr,
-                'arial',
+                game.fnt,
                 24,
                 self._SUB_LABEL,
                 game.get_screen_rect().move(0, 50),
@@ -1262,7 +1280,7 @@ class MainGameState(gnppygame.GameState):
     def end_round(self):
         print('end round')
         self.round_over = True
-        # self.owner().font_mgr.draw(screen, 'arial', 16, '%s crashed' % ', '.join(whoCrashed), pygame.Rect((0, 280), (self.owner().get_screen_rect().width, 40)), kBlack, 'center', 'center')
+        # self.owner().font_mgr.draw(screen, self.fnt, 16, '%s crashed' % ', '.join(whoCrashed), pygame.Rect((0, 280), (self.owner().get_screen_rect().width, 40)), kBlack, 'center', 'center')
         print('Game State FPS: %.4f (time: %.3f ticks: %d)' % (self._fps_timer.get_total_fps(), self._fps_timer.get_total_time(), self._fps_timer.get_total_ticks()))
         if CFG.Profiler.On:
             self.owner().request_exit()
@@ -1830,7 +1848,7 @@ class HitSpacebarToContinueState(gnppygame.GameState):
 ##      cGameState.__init__(self, owner)
 
     def draw_hit_spacebar_to_continue_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, '- Hit spacebar to continue -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+        self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, '- Hit spacebar to continue -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1875,7 +1893,7 @@ class PlayerRegistrationState(gnppygame.GameState):
         self.names = Nexter(CFG.Player.Names)
         colors = [ColorIdxAndRGB(idx+CFG.Win.FirstColorIdx, color) for idx, color in enumerate(CFG.Player.Colors)]
         self.colors = Nexter(colors)
-        self._dark_rect = gnpactor.AlphaRect(self.owner().get_screen_rect().inflate(-200, -20), (0, 0, 0, 100))
+        self._dark_rect = gnpactor.AlphaRect(self.owner().get_screen_rect().inflate(-200, -20), (0, 0, 0, 220))
         self._actors = gnppygame.ActorList()
 
         pygame.event.pump()
@@ -1900,11 +1918,18 @@ class PlayerRegistrationState(gnppygame.GameState):
         # start registration "script"
         self.header = ''
         self.event = None
-        self.script = self.reg_script()
+        self.script = self.registration_script()
         next(self.script)  # give script a chance to init itself
 
-    def draw_press_number_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), 'arial', 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Tap SPACE to start.', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+        self.enable_input = False
+        self.owner().timers.add(4.5, self.set_enable_input)
+
+    def set_enable_input(self):
+        self.enable_input = True
+
+    def draw_player_instructions(self):
+        if len(self.owner()._controllers) > 0:
+            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1930,7 +1955,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 msg_duration = 3.0
                 msg = TextActor(
                     self.owner().font_mgr,
-                    'arial',
+                    self.owner().fnt,
                     60,
                     'Everyone must have unique colors before starting',
                     err_msg_rect,
@@ -1947,6 +1972,9 @@ class PlayerRegistrationState(gnppygame.GameState):
 
     def input(self, time_delta):
         """Call each frame to process input"""
+        if not self.enable_input:
+            return
+
         dirty = False
         events = self.hold_watcher.get(pygame.event.get(), time_delta)
         events = self.joy_watcher.get(events)
@@ -2026,9 +2054,9 @@ class PlayerRegistrationState(gnppygame.GameState):
             y, y_delta = (0, 40)
 
         for c in controllers:
-            font_mgr.draw(surface, 'arial', 60, c._name, (x, y), c._color.rgb)
+            font_mgr.draw(surface, self.owner().fnt, 60, c._name, (x, y), c._color.rgb)
             pygame.draw.rect(surface, c._color.rgb, pygame.Rect(x+400, y+10, 200, 50), 0)
-            font_mgr.draw(surface, 'arial', 24, c._input_config.name, (x +650, y+20), c._color.rgb)
+            font_mgr.draw(surface, self.owner().fnt, 24, c._input_config.name, (x +650, y+20), c._color.rgb)
             y += y_delta
 
     def step(self, time_delta):
@@ -2043,14 +2071,14 @@ class PlayerRegistrationState(gnppygame.GameState):
             self.input(time_delta)
 
             s = pygame.display.get_surface()
-            self.draw_player_list(s)
-            self.draw_press_number_text()
-            self._actors.draw(s)
-
-            self.owner().font_mgr.draw(s, 'arial', 24, self.header, self.owner().get_screen_rect(), gnppygame.RED, 'center', 'top')
+            if self.enable_input:
+                self.draw_player_list(s)
+                self.draw_player_instructions()
+                self._actors.draw(s)
+                self.owner().font_mgr.draw(s, self.owner().fnt, 24, self.header, self.owner().get_screen_rect(), gnppygame.RED, 'center', 'top')
             pygame.display.update()
 
-    def reg_script(self):
+    def registration_script(self):
         """Generator-based "script" that drives player checkin and input config"""
         # Called for each event that isn't processed by .input()
         self.player_registration_in_flight = False
@@ -2130,21 +2158,37 @@ def wait_until(predicate):
 class TitleScreenState(PlayerRegistrationState):
     def begin_state(self):
         PlayerRegistrationState.begin_state(self)
-        self.__img = pygame.image.load(str(_resource_path / 'images/SnakeTitle.bmp'))
+        self.__img = pygame.image.load(str(_resource_path / 'images/ArcArena_title.png'))
         self.screen = pygame.display.get_surface()
-        self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, gnppygame.RED, 1.2, 255, 0)
+        fade_start_time = 1.5  # give monitor time to switch video mode, etc. before staring title screen
+        fade_length_time = 1
+        self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, (0, 0, 90), fade_length_time, 255, 0)
+        self.enable_fader = False
+        self.owner().timers.add(fade_start_time, self.start_fade)
+
+        # background
+        self._surface_bg = pygame.Surface(self.screen.get_size(), 0, self.screen)
+        draw_background_concentric_arcs(self._surface_bg, None)
+
+    def start_fade(self):
+        self.owner().audio_mgr.play('SOUND243')
+        self.enable_fader = True
 
     def goto_next_state(self):
         self.change_state(self.owner().make_next_round())
 
     def step(self, time_delta):
         PlayerRegistrationState.step(self, time_delta)
-        
+        self.screen.fill(gnppygame.BLACK)
+
+        self.screen.blit(self._surface_bg, (0, 0))  # draw background pattern to main display
+
         new_scaled_surf = pygame.transform.scale(self.__img, self.owner().get_screen_rect().size)
         self.screen.blit(new_scaled_surf, self.__img.get_rect())
 
         self._screen_fader.draw(pygame.display.get_surface())
-        self._screen_fader.step(time_delta)
+        if self.enable_fader:
+            self._screen_fader.step(time_delta)
         
         
 class ShowScoreState(HitSpacebarToContinueState):

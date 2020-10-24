@@ -24,11 +24,11 @@ Good reflexes and an ability to handle the pressure will help you show those on 
     python -m arc_arena.arc_game
 
 
-# Bundling into one-file executable with PyInstaller
+# Bundle into a self-contained, one-file executable with PyInstaller
 
     pip install pyinstaller
     pyinstaller src/arc_arena/arc_game.py --name ArcArena --add-data 'src/arc_arena/resources;resources' --onefile
-
+    # .exe generated will be: dist/ArcArena.exe
 
 # Revision History
 

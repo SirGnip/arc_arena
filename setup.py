@@ -30,6 +30,6 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         # 3rd party dependencies
-        "gnp_pygame @ http://github.com/SirGnip/gnp_pygame/tarball/v2.0.1#egg=package-1.0",
+        "gnp_pygame @ http://github.com/SirGnip/gnp_pygame/tarball/v2.1.0#egg=package-1.0",
     ],
 )
