@@ -327,7 +327,7 @@ class Snake(object):
         self.turning_dir = self.NOTURN
         self.draw_size = CFG.Snake.DrawSize
         self.whisker_length = self.draw_size + 2
-        self.robot_whisker_length = 50
+        self.robot_whisker_length = 75
         self.gap_size = CFG.Snake.GapSize  # how big are the gaps?
         self.wall_size = CFG.Snake.WallSize  # how long are the walls inbetween gaps?
         self._drawing_gap = False
@@ -428,7 +428,21 @@ class Snake(object):
         whisker_pos = self.pos + (self.vel.Normalize() * self.robot_whisker_length)
         whisker_pos = gnppygame.clamp_point_to_rect(whisker_pos.AsIntTuple(), _game.get_screen_rect())
         return screen.get_at(whisker_pos)
-        
+
+    def get_color_under_near_right_robot_whisker(self, screen):
+        vel = self.vel.Normalize() * (self.robot_whisker_length * 0.1)
+        vel.Rotate(3.1415926/1.8)
+        whisker_pos = self.pos + vel
+        whisker_pos = gnppygame.clamp_point_to_rect(whisker_pos.AsIntTuple(), _game.get_screen_rect())
+        return screen.get_at(whisker_pos)
+
+    def get_color_under_near_left_robot_whisker(self, screen):
+        vel = self.vel.Normalize()
+        vel.Rotate(-3.1415926/1.8)
+        whisker_pos = self.pos + (vel * (self.robot_whisker_length * 0.1))
+        whisker_pos = gnppygame.clamp_point_to_rect(whisker_pos.AsIntTuple(), _game.get_screen_rect())
+        return screen.get_at(whisker_pos)
+
     def is_dead(self, game_surface):
         try:
             return self.get_color_under_whisker(game_surface) != CFG.Win.BackgroundColorRGB
@@ -1239,13 +1253,25 @@ class MainGameState(gnppygame.GameState):
         for controller in self.owner()._controllers:
             controller.input()
 
-##      # HACK: player 3 robot
-##      if len(self.aliveSnakes) > 2:
-##          s = self.aliveSnakes[2]
-##          if s.get_color_under_robot_whisker() == self.backgroundColor:
-##              s.set_turn_state(cSnake.kNone)
-##          else:
-##              s.set_turn_state(cSnake.kLeft)
+        # self.do_robot(self.owner()._controllers[0]._snake)
+        # self.do_robot(self.owner()._controllers[1]._snake)
+
+    def do_robot(self, snake):
+        """Robot doesn't do much. Just ultra-simple wall avoidance, and it doesn't even do that very well."""
+        if snake in self.alive_snakes:
+            if snake.turning_dir == None:  # only allow robot to take control if there is no key being pressed
+                whisk_ctr = snake.get_color_under_robot_whisker(self.game_surface) != CFG.Win.BackgroundColorRGB
+                whisk_near_r = snake.get_color_under_near_right_robot_whisker(self.game_surface) != CFG.Win.BackgroundColorRGB
+                whisk_near_l = snake.get_color_under_near_left_robot_whisker(self.game_surface) != CFG.Win.BackgroundColorRGB
+
+                if whisk_near_r or whisk_ctr:
+                    snake.set_turn_state(Snake.LEFTTURN)
+                else:
+                    if whisk_near_l:
+                        snake.set_turn_state(Snake.RIGHTTURN)
+                    else:
+                        snake.set_turn_state(Snake.NOTURN)
+
 
     def on_timer_first_step(self, play_beep=True):
         if play_beep:
