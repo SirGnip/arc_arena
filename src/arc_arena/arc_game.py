@@ -2065,9 +2065,12 @@ class PlayerRegistrationState(gnppygame.GameState):
     def step(self, time_delta):
         self._actors.step(time_delta)
         if CFG.Debug.On:
-            self.owner()._controllers.append(PlayerController('FirstSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx, CFG.Player.Colors[0]), None, self.owner().input_configs[0]))
-            self.owner()._controllers.append(PlayerController('SecondSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx+2, CFG.Player.Colors[2]), None, self.owner().input_configs[1]))
-            self.owner()._controllers.append(PlayerController('ThirdSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx+4, CFG.Player.Colors[4]), None, self.owner().input_configs[2]))
+            config1 = KeyboardInputConfig(f'keys Q / W', pygame.K_q, pygame.K_w)
+            config2 = KeyboardInputConfig(f'keys Z / X', pygame.K_z, pygame.K_x)
+            config3 = MouseInputConfig('mouse input config')
+            self.owner()._controllers.append(PlayerController('FirstSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx, CFG.Player.Colors[0]), None, config1))
+            self.owner()._controllers.append(PlayerController('SecondSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx+2, CFG.Player.Colors[2]), None, config2))
+            self.owner()._controllers.append(PlayerController('ThirdSnake', ColorIdxAndRGB(CFG.Win.FirstColorIdx+4, CFG.Player.Colors[4]), None, config3))
             self.start_game()
         else:
             # advance the logic that handles new player input registration, name and color changes
@@ -2164,7 +2167,7 @@ class TitleScreenState(PlayerRegistrationState):
         self.__img = pygame.image.load(str(_resource_path / 'images/ArcArena_title.png'))
         self.screen = pygame.display.get_surface()
         fade_start_time = 1.5  # give monitor time to switch video mode, etc. before staring title screen
-        fade_length_time = 1
+        fade_length_time = 1.0
         self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, GLOBAL_BLUE, fade_length_time, 255, 0)
         self.enable_fader = False
         self.owner().timers.add(fade_start_time, self.start_fade)
