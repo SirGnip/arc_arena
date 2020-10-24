@@ -2119,12 +2119,12 @@ class PlayerRegistrationState(gnppygame.GameState):
                 if len(right_str.strip()) == 0:
                     right_str = self.key_name_lookup.get(right_event.key, '???').title()
 
-                input_cfg = KeyboardInputConfig(f'{device} config {left_str} / {right_str}', left_event.key, right_event.key)
+                input_cfg = KeyboardInputConfig(f'{device} {left_str} / {right_str}', left_event.key, right_event.key)
             elif device == 'mouse':
-                input_cfg = MouseInputConfig(f'{device} config {left_event.button}/{right_event.button}')
+                input_cfg = MouseInputConfig(f'{device} {left_event.button}/{right_event.button}')
             elif device == 'gamepad':
                 cur_joy = self.owner().joys[self.event.joy]
-                desc = f'{cur_joy._joy.get_name().strip()} #{cur_joy._joy.get_id()} config {left_event.button}/{right_event.button}'
+                desc = f'{cur_joy._joy.get_name().strip()} #{cur_joy._joy.get_id()} {left_event.button}/{right_event.button}'
                 input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
             else:
                 raise Exception(f'Unknown device: {device}')
