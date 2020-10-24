@@ -2099,11 +2099,11 @@ class PlayerRegistrationState(gnppygame.GameState):
             joy_msg = ''
             device = ''
             if self.event.type == pygame.KEYDOWN:
-                device = 'keyboard'
+                device = 'Keyboard'
             elif self.event.type == pygame.MOUSEBUTTONDOWN:
-                device = 'mouse'
+                device = 'Mouse'
             elif self.event.type == pygame.JOYBUTTONDOWN:
-                device = 'gamepad'
+                device = 'Gamepad'
                 j = self.owner().joys[self.event.joy]
                 joy_msg = f'{j._joy.get_name().strip()} #{j._joy.get_id()}'
             left_event = self.event
@@ -2113,19 +2113,19 @@ class PlayerRegistrationState(gnppygame.GameState):
             yield from wait_until(lambda: is_event_on_same_device_and_not_same_button(left_event, self.event))
             right_event = self.event
             self.owner().audio_mgr.play('Blip')
-            if device == 'keyboard':
+            if device == 'Keyboard':
                 # get string representations of keys that don't have a readable .unicode member
-                left_str = left_event.unicode
+                left_str = left_event.unicode.title()
                 if len(left_str.strip()) == 0:
                     left_str = self.key_name_lookup.get(left_event.key, '???').title()
-                right_str = right_event.unicode
+                right_str = right_event.unicode.title()
                 if len(right_str.strip()) == 0:
                     right_str = self.key_name_lookup.get(right_event.key, '???').title()
 
                 input_cfg = KeyboardInputConfig(f'{device} {left_str} / {right_str}', left_event.key, right_event.key)
-            elif device == 'mouse':
+            elif device == 'Mouse':
                 input_cfg = MouseInputConfig(f'{device} {left_event.button}/{right_event.button}')
-            elif device == 'gamepad':
+            elif device == 'Gamepad':
                 cur_joy = self.owner().joys[self.event.joy]
                 desc = f'{cur_joy._joy.get_name().strip()} #{cur_joy._joy.get_id()} {left_event.button}/{right_event.button}'
                 input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
