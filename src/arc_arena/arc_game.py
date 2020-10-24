@@ -1925,7 +1925,7 @@ class PlayerRegistrationState(gnppygame.GameState):
         next(self.script)  # give script a chance to init itself
 
         self.enable_input = False
-        self.owner().timers.add(4.5, self.set_enable_input)
+        self.owner().timers.add(0.2 if CFG.Debug.FastStart else 4.5, self.set_enable_input)
 
     def set_enable_input(self):
         self.enable_input = True
@@ -2166,8 +2166,8 @@ class TitleScreenState(PlayerRegistrationState):
         PlayerRegistrationState.begin_state(self)
         self.__img = pygame.image.load(str(_resource_path / 'images/ArcArena_title.png'))
         self.screen = pygame.display.get_surface()
-        fade_start_time = 1.5  # give monitor time to switch video mode, etc. before staring title screen
-        fade_length_time = 1.0
+        fade_start_time = 0.1 if CFG.Debug.FastStart else 1.5  # give monitor time to switch video mode, etc. before staring title screen
+        fade_length_time = 0.1 if CFG.Debug.FastStart else 1.0
         self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, GLOBAL_BLUE, fade_length_time, 255, 0)
         self.enable_fader = False
         self.owner().timers.add(fade_start_time, self.start_fade)

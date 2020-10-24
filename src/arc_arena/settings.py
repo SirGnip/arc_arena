@@ -160,6 +160,7 @@ class Sound:
 
 class Debug:
     On = False
+    FastStart = False
 
 class Profiler:
     On = False
