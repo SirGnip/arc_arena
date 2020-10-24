@@ -84,7 +84,7 @@ class Player:
         (34, 141, 255), # neon blue
         (186, 1, 255),  # neon purple
     )
-    Colors = _orig_colors
+    Colors = _extended_colors
 
     RequireUniqueColors = True
 

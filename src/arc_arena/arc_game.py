@@ -18,6 +18,9 @@ import traceback
 
 
 CFG = settings  # quick alias
+# simplistic color palette
+GLOBAL_RED = (175, 0, 0)
+GLOBAL_BLUE = (0, 0, 181)
 
 
 class ColorIdxAndRGB(object):
@@ -1848,7 +1851,7 @@ class HitSpacebarToContinueState(gnppygame.GameState):
 ##      cGameState.__init__(self, owner)
 
     def draw_hit_spacebar_to_continue_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, '- Hit spacebar to continue -', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+        self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, '- Hit spacebar to continue -', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1929,7 +1932,7 @@ class PlayerRegistrationState(gnppygame.GameState):
 
     def draw_player_instructions(self):
         if len(self.owner()._controllers) > 0:
-            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), gnppygame.RED, 'center', 'bottom')
+            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -2075,7 +2078,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 self.draw_player_list(s)
                 self.draw_player_instructions()
                 self._actors.draw(s)
-                self.owner().font_mgr.draw(s, self.owner().fnt, 24, self.header, self.owner().get_screen_rect(), gnppygame.RED, 'center', 'top')
+                self.owner().font_mgr.draw(s, self.owner().fnt, 24, self.header, self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'top')
             pygame.display.update()
 
     def registration_script(self):
@@ -2162,7 +2165,7 @@ class TitleScreenState(PlayerRegistrationState):
         self.screen = pygame.display.get_surface()
         fade_start_time = 1.5  # give monitor time to switch video mode, etc. before staring title screen
         fade_length_time = 1
-        self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, (0, 0, 90), fade_length_time, 255, 0)
+        self._screen_fader = gnppygame.ScreenFader(self.screen.get_rect().size, GLOBAL_BLUE, fade_length_time, 255, 0)
         self.enable_fader = False
         self.owner().timers.add(fade_start_time, self.start_fade)
 
