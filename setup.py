@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="arc_arena",
     version="2.0.0",
-    description="Survive longer than your foes in the arena! A hotseat game that supports a large number of players on one screen.",
+    description="Local multiplayer for a crowd (2-14 players) party game. Modern take on the classic \"snake.\"",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/SirGnip/arc_arena",
