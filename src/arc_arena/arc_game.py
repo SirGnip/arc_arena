@@ -1958,7 +1958,7 @@ class PlayerRegistrationState(gnppygame.GameState):
 
     def draw_player_instructions(self):
         if len(self.owner()._controllers) > 0:
-            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
+            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold either to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1985,8 +1985,8 @@ class PlayerRegistrationState(gnppygame.GameState):
                 msg = TextActor(
                     self.owner().font_mgr,
                     self.owner().fnt,
-                    60,
-                    'Everyone must have unique colors before starting',
+                    24,
+                    "Can not start until all players have unique colors",
                     err_msg_rect,
                     gnppygame.WHITE,
                     'center',
