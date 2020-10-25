@@ -2072,7 +2072,7 @@ class PlayerRegistrationState(gnppygame.GameState):
         font_mgr = self.owner().font_mgr
         if len(controllers) > 0:
             self._dark_rect.draw(surface)
-        x = 225
+        x = 150
         if len(controllers) < 7:
             y, y_delta = (50, 80)
         elif len(controllers) < 10:
@@ -2084,8 +2084,8 @@ class PlayerRegistrationState(gnppygame.GameState):
 
         for c in controllers:
             font_mgr.draw(surface, self.owner().fnt, 60, c._name, (x, y), c._color.rgb)
-            pygame.draw.rect(surface, c._color.rgb, pygame.Rect(x+400, y+10, 200, 50), 0)
-            font_mgr.draw(surface, self.owner().fnt, 24, c._input_config.name, (x +650, y+20), c._color.rgb)
+            pygame.draw.rect(surface, c._color.rgb, pygame.Rect(x+450, y+10, 200, 50), 0)
+            font_mgr.draw(surface, self.owner().fnt, 24, c._input_config.name, (x +700, y+20), c._color.rgb)
             y += y_delta
 
     def step(self, time_delta):
@@ -2153,7 +2153,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 input_cfg = MouseInputConfig(f'{device} {left_event.button}/{right_event.button}')
             elif device == 'Gamepad':
                 cur_joy = self.owner().joys[self.event.joy]
-                desc = f'{cur_joy._joy.get_name().strip()} #{cur_joy._joy.get_id()} {left_event.button}/{right_event.button}'
+                desc = f'{device} #{cur_joy._joy.get_id()+1} - {cur_joy._joy.get_name().strip()} {left_event.button}/{right_event.button}'
                 input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
             else:
                 raise Exception(f'Unknown device: {device}')
