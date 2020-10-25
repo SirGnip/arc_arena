@@ -1,6 +1,6 @@
 # Arc Arena
 
-*Can you survive longer than your foes in the Arena?*
+*Can you outlast your foes in the Arena?*
 
 Arc Arena is a "local multiplayer for a crowd" party game for Windows that supports a large number
 of players (1-14) on one screen. Extremely simple but competitive gameplay. Good reflexes and an
@@ -12,7 +12,7 @@ lots of competitors sitting shoulder to shoulder, with just two buttons, one scr
 victor!
 
 I'm sure you have played something like the "Snake Game" or "Tron light cycles" before. But have
-you ever played it against a large group of your friends sitting next to you on the couch?
+you ever played it against a large group of your friends, sitting next to you on the couch?
 
 ### Features:
 
