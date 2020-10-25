@@ -2002,7 +2002,7 @@ class PlayerRegistrationState(gnppygame.GameState):
     def input(self, time_delta):
         """Call each frame to process input"""
         if not self.enable_input:
-            return
+            pygame.event.get()  # consume events in event queue
 
         dirty = False
         events = self.hold_watcher.get(pygame.event.get(), time_delta)
