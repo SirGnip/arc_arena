@@ -154,6 +154,7 @@ class BackgroundOrig:
 class Input:
     JoyCountMax = 8
     JoyDeadzone = 0.6
+    OnePlayerPerJoy = True
     
 class Sound:
     EnableSFX = True

@@ -2110,6 +2110,16 @@ class PlayerRegistrationState(gnppygame.GameState):
                 self.owner().font_mgr.draw(s, self.owner().fnt, 24, self.header, self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'top')
             pygame.display.update()
 
+    def is_event_for_joy_that_is_alrady_registered(self, event):
+        if not CFG.Input.OnePlayerPerJoy:
+            return False  # skip this logic if disabled in config
+
+        if event.type != pygame.JOYBUTTONDOWN:
+            return False
+
+        used_joy_ids = {c._input_config._joy._joy.get_id() for c in self.owner()._controllers if isinstance(c._input_config, JoystickInputConfig)}
+        return event.joy in used_joy_ids
+
     def registration_script(self):
         """Generator-based "script" that drives player checkin and input config"""
         # Called for each event that isn't processed by .input()
@@ -2119,7 +2129,8 @@ class PlayerRegistrationState(gnppygame.GameState):
             self.header = 'Add a new player. Start by pressing a button to be their LEFT control.'
 
             yield from wait_until(lambda: self.event and self.event.type in (
-            pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN))
+            pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN)
+                                  and not self.is_event_for_joy_that_is_alrady_registered(self.event))
             self.player_registration_in_flight = True
             self.owner().audio_mgr.play('start')
             joy_msg = ''
