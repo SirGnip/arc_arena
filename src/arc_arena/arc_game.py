@@ -2157,10 +2157,21 @@ class PlayerRegistrationState(gnppygame.GameState):
                 input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
             else:
                 raise Exception(f'Unknown device: {device}')
-            self.owner()._controllers.append(
-                PlayerController(self.names.get_random(), self.colors.get_random(), None, input_cfg))
+
+            new_color = self._select_new_player_color()
+            self.owner()._controllers.append(PlayerController(self.names.get_random(), new_color, None, input_cfg))
             self.player_registration_in_flight = False
             yield  # consume the event that was handled above by yielding control
+
+    def _select_new_player_color(self):
+        """Return a random unused color, or if all available colors are used, return a random color."""
+        used_colors = {c._color for c in self.owner()._controllers}
+        all_colors = set(self.colors._items)
+        unused_colors = all_colors - used_colors
+        if len(unused_colors) == 0:
+            return self.colors.get_random()
+        else:
+            return random.choice(tuple(unused_colors))
 
 
 def is_event_on_same_device_and_not_same_button(orig_event, other_event):
