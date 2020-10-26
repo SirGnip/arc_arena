@@ -5,7 +5,9 @@
 Arc Arena is a "local multiplayer for a crowd" party game for Windows that supports a large number
 of players (1-14) on one screen. Extremely simple but competitive gameplay. Good reflexes and an
 ability to handle the pressure will help you show those on the couch next to you who is king of
-the Arena! 
+the Arena!
+
+![Arc Arena gameplay](https://sirgnip.github.io/repo/arc_arena/arc_arena_gameplay_15fps_40pct.gif)
 
 There are no fancy 3D graphics here, no soundtrack, no AI players, no single player campaign. Just
 lots of competitors sitting shoulder to shoulder, with just two buttons, one screen, and one final
@@ -65,6 +67,6 @@ Input:
 
 This game was inspired by my memories of playing "Achtung! Die Kurve" on a friend's Amiga back in the 90's. The experience of having 6 people crammed around one keyboard to battle it out was unforgettable!
 
-[![HitCount](http://hits.dwyl.com/SirGnip/arc_arena.svg)](http://hits.dwyl.com/SirGnip/arc_arena)
-
 ![Hits](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Fgithub.com%2FSirGnip%2Farc_arena)
+
+![HitCount](http://hits.dwyl.com/SirGnip/arc_arena.svg)
