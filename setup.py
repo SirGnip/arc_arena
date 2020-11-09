@@ -24,7 +24,7 @@ setuptools.setup(
     ],
 
     package_data={
-        "arc_arena": ["resources/images/*", "resources/sounds/*"],
+        "arc_arena": ["resources/images/*", "resources/sounds/*", "resources/fonts/*"],
     },
 
     python_requires='>=3.7',
