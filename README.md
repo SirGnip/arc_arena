@@ -36,8 +36,11 @@ Screen:
 
 Input:
 
-- When more than 2 or 3 players are sharing the keyboard for their input (which is completely possible and a lot of fun!), you need to be aware of the "[multi-key rollover](https://en.wikipedia.org/wiki/Rollover_(key)#Multi-key_rollover)" limitations of your specific keyboard.
-- To support larger crowds, plugging multiple USB gamepads into a USB hub is a quick way to be able to support more players.
+- Strategies for how to play with larger crowds:
+    - crowd people around one keyboard (game supports multiple people using one keyboard)
+        - When more than 2 or 3 players are sharing the keyboard for their input (which is completely possible and a lot of fun!), you need to be aware of the "[multi-key rollover](https://en.wikipedia.org/wiki/Rollover_(key)#Multi-key_rollover)" limitations of your specific keyboard.
+    - plug a second keyboard into your computer
+    - plug multiple USB gamepads into a USB hub
 
 # Installation for local development
 
