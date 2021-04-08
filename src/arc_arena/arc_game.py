@@ -1946,9 +1946,8 @@ class PlayerRegistrationState(gnppygame.GameState):
 
         # start registration "script"
         self.header = ''
-        self.event = None
         self.script = self.registration_script()
-        next(self.script)  # give script a chance to init itself
+        self.script.send(None)  # give script a chance to init itself
 
         self.enable_input = False
         self.owner().timers.add(0.2 if CFG.Debug.FastStart else 4.5, self.set_enable_input)
@@ -2046,9 +2045,8 @@ class PlayerRegistrationState(gnppygame.GameState):
                             dirty = True
                         break
                 else:  # else clause on for loop is executed when no "break" statement was encountered
-                    # advance "register new players" input handler
-                    self.event = e  # can i pass an event to the generator script in a different way? coroutine?
-                    next(self.script)
+                    # advance "register new players" input handler script
+                    self.script.send(e)
                     dirty = True
 
         if dirty:
@@ -2121,34 +2119,34 @@ class PlayerRegistrationState(gnppygame.GameState):
         return event.joy in used_joy_ids
 
     def registration_script(self):
-        """Generator-based "script" that drives player checkin and input config"""
+        """Coroutine-based "script" that asynchronously drives player checkin and input config"""
         # Called for each event that isn't processed by .input()
         self.player_registration_in_flight = False
 
         while True:
             self.header = 'Add a new player. Start by pressing a button to be their LEFT control.'
 
-            yield from wait_until(lambda: self.event and self.event.type in (
+            event = yield from wait_until(lambda evt: evt and evt.type in (
             pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN)
-                                  and not self.is_event_for_joy_that_is_alrady_registered(self.event))
+                                  and not self.is_event_for_joy_that_is_alrady_registered(evt))
             self.player_registration_in_flight = True
             self.owner().audio_mgr.play('start')
             joy_msg = ''
             device = ''
-            if self.event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN:
                 device = 'Keyboard'
-            elif self.event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 device = 'Mouse'
-            elif self.event.type == pygame.JOYBUTTONDOWN:
+            elif event.type == pygame.JOYBUTTONDOWN:
                 device = 'Gamepad'
-                j = self.owner().joys[self.event.joy]
+                j = self.owner().joys[event.joy]
                 joy_msg = f'{j._joy.get_name().strip()} #{j._joy.get_id()}'
-            left_event = self.event
+            left_event = event
             self.header = f'Complete addition of new player by pressing a button on the {device} {joy_msg} to be player\'s RIGHT control.'
             yield  # consume the event that was handled above by yielding control
 
-            yield from wait_until(lambda: is_event_on_same_device_and_not_same_button(left_event, self.event))
-            right_event = self.event
+            event = yield from wait_until(lambda evt: is_event_on_same_device_and_not_same_button(left_event, evt))
+            right_event = event
             self.owner().audio_mgr.play('Blip')
             if device == 'Keyboard':
                 # get string representations of keys that don't have a readable .unicode member
@@ -2163,7 +2161,7 @@ class PlayerRegistrationState(gnppygame.GameState):
             elif device == 'Mouse':
                 input_cfg = MouseInputConfig(f'{device} {left_event.button}/{right_event.button}')
             elif device == 'Gamepad':
-                cur_joy = self.owner().joys[self.event.joy]
+                cur_joy = self.owner().joys[event.joy]
                 desc = f'{device} #{cur_joy._joy.get_id()+1} - {cur_joy._joy.get_name().strip()} {left_event.button}/{right_event.button}'
                 input_cfg = JoystickInputConfig(desc, cur_joy, (left_event.button, right_event.button))
             else:
@@ -2202,11 +2200,11 @@ def is_event_on_same_device_and_not_same_button(orig_event, other_event):
 
 
 def wait_until(predicate):
-    """generator that blocks until the given predicate evaluates to true"""
+    """coroutine that blocks until the given predicate (which accepts one argument) evaluates to true, returning the argument."""
     while True:
-        if predicate():
-            break
-        yield
+        dat = yield
+        if predicate(dat):
+            return dat
 
 
 class TitleScreenState(PlayerRegistrationState):
