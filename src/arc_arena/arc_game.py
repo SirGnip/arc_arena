@@ -1515,7 +1515,7 @@ class ReadyAimRound(MainGameState):
             try:
                 clr = game_surface.get_at(self.pos.AsIntTuple())
             except IndexError as e:
-                print('Bullet went offscreen at ' + self.pos.AsIntTuple() + ' Exception: ' + e)
+                print('Bullet went off-screen at ' + str(self.pos.AsIntTuple()) + ' Exception: ' + str(e))
                 return True
             touching = clr not in (CFG.Win.BackgroundColorRGB, CFG.Win.BorderColorRGB)
             return touching
