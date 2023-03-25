@@ -203,6 +203,9 @@ class BoostRound:
     # BoostDuration = 0.4
     BoostCooldown = 8.0
 
+class BeamMeUpRound:
+    TeleportCooldown = 3.0
+
 class ColorBlindRound:
     ColorIdx = 104
     ColorRGB = (128, 128, 128)

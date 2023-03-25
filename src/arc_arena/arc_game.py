@@ -1037,6 +1037,7 @@ class ArcGame(gnppygame.GameWithStates):
             LeadFootRound,
             SpeedCyclesRound,
             SqueezeReadyAimComboRound,
+            BeamMeUpRound,
         )
 
         basic_only_round = (
@@ -1095,6 +1096,7 @@ class ArcGame(gnppygame.GameWithStates):
             LeadFootRound,
             SpeedCyclesRound,
             SqueezeReadyAimComboRound,
+            BeamMeUpRound,
         )
 
         if CFG.Round.RoundSet == 'all':
@@ -2022,6 +2024,37 @@ class BoostRound(MainGameState):
 
     @staticmethod
     def on_boost_timer_reset(snake):
+        """Callback to fire when the snake's cooldown has reset"""
+        snake.set_head_dim(False)
+
+
+class BeamMeUpRound(MainGameState):
+    """Teleport your snake. Do you want to take the risk?"""
+    _LABEL = 'Beam me up'
+    _SUB_LABEL = 'Press both buttons to teleport'
+
+    def __init__(self, game_obj):
+        super(BeamMeUpRound, self).__init__(game_obj)
+        self.enable_wrapping()
+        for snake in self.alive_snakes:
+            snake.head_color_dim = CFG.ReadyAimRound.HeadColorDimIdx
+
+    def on_gameplay_begins(self):
+        for snake in self.alive_snakes:
+            snake.register_both_turn_callback(self.both_turn_callback)
+
+    def both_turn_callback(self, snake):
+        """callback for when a player presses both buttons simultaneously"""
+        is_alive = snake in self.alive_snakes
+        if is_alive and not snake.is_head_dimmed:
+            game = self.owner()
+            game.audio_mgr.play('SOUND28') # newemail, PUSH
+            snake.set_head_dim(True)
+            snake.pos = gnipMath.cVector2.RandInRect(snake.wrap_boundary)
+            game.timers.add(CFG.BeamMeUpRound.TeleportCooldown, functools.partial(BeamMeUpRound.on_teleport_timer_reset, snake))
+
+    @staticmethod
+    def on_teleport_timer_reset(snake):
         """Callback to fire when the snake's cooldown has reset"""
         snake.set_head_dim(False)
 
