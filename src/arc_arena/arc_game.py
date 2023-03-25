@@ -1447,6 +1447,7 @@ class AppleRushRound(MainGameState):
         super(AppleRushRound, self).__init__(game_obj)
         self._apples = gnppygame.ActorList()
         self.owner().timers.add(3.0, self._on_timer_spawn_apple)
+        self.enable_wrapping()
 
     def _on_timer_spawn_apple(self):
         if self.round_over:
