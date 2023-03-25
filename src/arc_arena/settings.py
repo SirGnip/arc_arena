@@ -163,7 +163,7 @@ class Sound:
 
 class Debug:
     On = False
-    FastStart = False
+    FastStart = True
 
 class Profiler:
     On = False
@@ -195,6 +195,14 @@ class AppleRushRound:
 class TurboArcRound:
     Speed = 120
     GapSize = Snake.GapSize * 2
+
+class OneTooManyRound:
+    JitterInterval = 5.0
+    JitterIntensity = 1.0
+
+class WayTooManyRound:
+    JitterInterval = 0.5
+    JitterIntensity = 0.4
 
 class BoostRound:
     Speed = 300

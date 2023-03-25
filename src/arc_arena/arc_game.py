@@ -1027,6 +1027,8 @@ class ArcGame(gnppygame.GameWithStates):
             LeftTurnOnlyRound,
             BoostRound,
             TurboArcRound,
+            OneTooManyRound,
+            WayTooManyRound,
             FollowerRound,
             AlternateTurnsRound,
             ReadyAimRound,
@@ -1087,12 +1089,14 @@ class ArcGame(gnppygame.GameWithStates):
             AppleRushRound,
             BoostRound,
             ScatterThroughInfinityRound,
+            OneTooManyRound,
             SqueezeRound,
             FollowerRound,
             ReadyAimRound,
             ToInfinityRound,
             JukeRound,
             GoliathRound,
+            WayTooManyRound,
             LeadFootRound,
             SpeedCyclesRound,
             SqueezeReadyAimComboRound,
@@ -1508,6 +1512,56 @@ class DizzyRound(MainGameState):
         for snake in self.alive_snakes:
             snake.turn_rate_left = -snake.turn_rate_left
             snake.turn_rate_right = -snake.turn_rate_right
+
+
+class JitterRoundBase(MainGameState):
+    """Base class for rounds that jitter the snakes movement on a given time interval"""
+    def __init__(self, game_obj):
+        super(JitterRoundBase, self).__init__(game_obj)
+        self.jitter_interval = 1.0
+        self.jitter_intensity = 1.0
+        self.jitter_amounts = []
+
+    def begin_state(self):
+        super(JitterRoundBase, self).begin_state()
+        self.jitter_amounts = [
+            self.jitter_intensity,
+            self.jitter_intensity / 2,
+            -self.jitter_intensity,
+            -self.jitter_intensity / 2,
+        ]
+        self.set_timer()
+
+    def set_timer(self):
+        game = self.owner()
+        game.timers.add(self.jitter_interval, functools.partial(self.on_do_jitter))
+
+    def on_do_jitter(self):
+        """Callback to fire when the snake's cooldown has reset"""
+        jitter_amount = random.choice(self.jitter_amounts)
+        if not self.round_over:
+            game = self.owner()
+            for snake in self.alive_snakes:
+                snake.turn(jitter_amount, 1.0)
+            self.set_timer()
+
+
+class OneTooManyRound(JitterRoundBase):
+    _LABEL = 'One Too Many?'
+    
+    def __init__(self, game_obj):
+        super(OneTooManyRound, self).__init__(game_obj)
+        self.jitter_interval = CFG.OneTooManyRound.JitterInterval
+        self.jitter_intensity = CFG.OneTooManyRound.JitterIntensity
+
+
+class WayTooManyRound(JitterRoundBase):
+    _LABEL = 'Way Too Many!'
+
+    def __init__(self, game_obj):
+        super(WayTooManyRound, self).__init__(game_obj)
+        self.jitter_interval = CFG.WayTooManyRound.JitterInterval
+        self.jitter_intensity = CFG.WayTooManyRound.JitterIntensity
 
 
 class JukeRound(MainGameState):
