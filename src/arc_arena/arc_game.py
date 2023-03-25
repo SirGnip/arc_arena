@@ -1030,7 +1030,7 @@ class ArcGame(gnppygame.GameWithStates):
             AlternateTurnsRound,
             ReadyAimRound,
             TreasureChamberRound,
-            BeyondTheBorder,
+            ToInfinityRound,
             JukeRound,
             GoliathRound,
             LeadFootRound,
@@ -1064,7 +1064,7 @@ class ArcGame(gnppygame.GameWithStates):
             ScatterRound,
             IndigestionRound,
             BasicRound,
-            BeyondTheBorder,
+            ToInfinityRound,
             ColorBlindRound,
             AppleRushRound,
             RightTurnOnlyRound,
@@ -1087,7 +1087,7 @@ class ArcGame(gnppygame.GameWithStates):
             SqueezeRound,
             FollowerRound,
             ReadyAimRound,
-            BeyondTheBorder,
+            ToInfinityRound,
             JukeRound,
             GoliathRound,
             LeadFootRound,
@@ -1782,11 +1782,12 @@ class TreasureChamberRound(MainGameState):
         self._apples.draw(surface)
 
 
-class BeyondTheBorder(MainGameState):
-    _LABEL = 'Beyond the Border'
+class ToInfinityRound(MainGameState):
+    _LABEL = 'To Infinity...'
+    _SUB_LABEL = "...and beyond!"
 
     def __init__(self, game_obj):
-        super(BeyondTheBorder, self).__init__(game_obj)
+        super(ToInfinityRound, self).__init__(game_obj)
         self.enable_wrapping()
 
 
