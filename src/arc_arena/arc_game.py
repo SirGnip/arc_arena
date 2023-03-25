@@ -176,11 +176,13 @@ class Scoreboard(object):
         self._max_win_streak = (0, [])
         self._last_round_time = 0.0
         self._max_round_time = (0, [])
+        self._round_num = 0
 
     def add_player(self, name, color):
         self._player_list.append(ScoreboardPlayer(name, color, self.start_score))
 
     def start_round(self):
+        self._round_num += 1
         self._elapsed = 0.0
         for player in self._player_list:
             player.start_round()
@@ -222,7 +224,7 @@ class Scoreboard(object):
         self._elapsed += time_delta
 
     def draw(self, screen):
-        _game.font_mgr.draw(screen, _game.fnt, 60, 'Round Over', _game.get_screen_rect(), gnppygame.WHITE, 'center', 'center')
+        _game.font_mgr.draw(screen, _game.fnt, 60, f'Round {self._round_num} Over', _game.get_screen_rect(), gnppygame.WHITE, 'center', 'center')
         # player scores
         cnt = len(self._player_list)
         if cnt <= 6:
