@@ -1015,7 +1015,7 @@ class ArcGame(gnppygame.GameWithStates):
             AppleRound,
             NoGapRound,
             TurboArcRound,
-            DizzyRoundMode,
+            DizzyRound,
             IndigestionRound,
             ReadyAimRound,
             SqueezeRound,
@@ -1023,6 +1023,7 @@ class ArcGame(gnppygame.GameWithStates):
             ColorBlindRound,
             AppleRushRound,
             RightTurnOnlyRound,
+            LeftTurnOnlyRound,
             BoostRound,
             TurboArcRound,
             FollowerRound,
@@ -1030,6 +1031,11 @@ class ArcGame(gnppygame.GameWithStates):
             ReadyAimRound,
             TreasureChamberRound,
             BeyondTheBorder,
+            JukeRound,
+            GoliathRound,
+            LeadFootRound,
+            SpeedCyclesRound,
+            SqueezeReadyAimComboRound,
         )
 
         basic_only_round = (
@@ -1054,7 +1060,7 @@ class ArcGame(gnppygame.GameWithStates):
             NoGapRound,
             BasicRound,
             TurboArcRound,
-            DizzyRoundMode,
+            DizzyRound,
             ScatterRound,
             IndigestionRound,
             BasicRound,
@@ -1082,6 +1088,11 @@ class ArcGame(gnppygame.GameWithStates):
             FollowerRound,
             ReadyAimRound,
             BeyondTheBorder,
+            JukeRound,
+            GoliathRound,
+            LeadFootRound,
+            SpeedCyclesRound,
+            SqueezeReadyAimComboRound,
         )
 
         if CFG.Round.RoundSet == 'all':
@@ -1387,13 +1398,13 @@ class MainGameState(gnppygame.GameState):
 
 class BasicRound(MainGameState):
     """Round with no special rules"""
-    pass
+    _LABEL = 'Classic'
 
 
 class AppleRound(MainGameState):
     """Round that adds an apple pickup for bonus points"""
     _LABEL = 'The Apple'
-    _SUB_LABEL = '%+d' % CFG.AppleRound.PointsPerApple
+    _SUB_LABEL = '%+d Points' % CFG.AppleRound.PointsPerApple
 
     def __init__(self, game_obj):
         super(AppleRound, self).__init__(game_obj)
@@ -1428,7 +1439,7 @@ class AppleRound(MainGameState):
 class AppleRushRound(MainGameState):
     """Round that adds multiple apple pickups as the round progresses"""
     _LABEL = 'Apple Rush'
-    _SUB_LABEL = '%+d each' % CFG.AppleRushRound.PointsPerApple
+    _SUB_LABEL = '%+d Point(s) Each' % CFG.AppleRushRound.PointsPerApple
 
     def __init__(self, game_obj):
         super(AppleRushRound, self).__init__(game_obj)
@@ -1483,15 +1494,29 @@ class ColorBlindRound(MainGameState):
             snake.body_color = ColorIdxAndRGB(CFG.ColorBlindRound.ColorIdx, CFG.ColorBlindRound.ColorRGB)
 
 
-class DizzyRoundMode(MainGameState):
+class DizzyRound(MainGameState):
     """Flip the directional control of snake"""
     _LABEL = 'Dizzy'
 
     def __init__(self, game_obj):
-        super(DizzyRoundMode, self).__init__(game_obj)
+        super(DizzyRound, self).__init__(game_obj)
         for snake in self.alive_snakes:
             snake.turn_rate_left = -snake.turn_rate_left
             snake.turn_rate_right = -snake.turn_rate_right
+
+
+class JukeRound(MainGameState):
+    """Increases the directional control of snake
+
+    Author: Kaelan E."""
+    _LABEL = 'Juke'
+
+    def __init__(self, game_obj):
+        super(JukeRound, self).__init__(game_obj)
+        for snake in self.alive_snakes:
+            snake.set_initial_speed(CFG.JukeRound.Speed)
+            snake.turn_rate_left -= CFG.JukeRound.IncreasedTurnRate
+            snake.turn_rate_right += CFG.JukeRound.IncreasedTurnRate
 
 
 class IndigestionRound(MainGameState):
@@ -1515,10 +1540,76 @@ class IndigestionRound(MainGameState):
             snake.whisker_length = max(4, size + 2)  # collision seemed flaky mostly at small widths, not sure why
 
 
+class GoliathRound(MainGameState):
+    """Increase width of snake as round progresses
+
+    Author: Kaelan E."""
+    _LABEL = 'Goliath'
+
+    def __init__(self, game_obj):
+        super(GoliathRound, self).__init__(game_obj)
+        self._elapsed = 0.0
+        for snake in self.alive_snakes:
+            snake.set_initial_speed(CFG.GoliathRound.Speed)
+            snake.gap_size = CFG.GoliathRound.GapSize
+
+    def step(self, time_delta):
+        super(GoliathRound, self).step(time_delta)
+        self._elapsed += time_delta
+        size = int(self._elapsed) * 2
+        for snake in self.alive_snakes:
+            snake.draw_size = size
+            snake.whisker_length = max(4, size + 2)  # collision seemed flaky mostly at small widths, not sure why
+
+
+class SpeedCyclesRound(MainGameState):
+    """Change speed of snake as round progresses
+
+    Author: Kaelan E."""
+    _LABEL = 'Speed Cycles'
+
+    def __init__(self, game_obj):
+        super(SpeedCyclesRound, self).__init__(game_obj)
+        self._elapsed = 0.0
+        # phaseShift is so sine wave starts at minimum value
+        self._wave = gnipMath.cSineWave(CFG.SpeedCyclesRound.CycleInSeconds, gnipMath.cRange(2.0, 8.0), phaseShift=.75)
+        for snake in self.alive_snakes:
+            snake.set_initial_speed(CFG.SpeedCyclesRound.Speed)
+            snake.gap_size = CFG.SpeedCyclesRound.GapSize
+
+    def step(self, time_delta):
+        super(SpeedCyclesRound, self).step(time_delta)
+        self._elapsed += time_delta
+        speed = int(self._wave.Get(self._elapsed))
+        for snake in self.alive_snakes:
+            snake.set_speed(CFG.SpeedCyclesRound.Speed * speed)
+
+
+class LeadFootRound(MainGameState):
+    """Increase speed of snake as round progresses
+
+    Author: Kaelan E."""
+    _LABEL = 'Lead Foot'
+
+    def __init__(self, game_obj):
+        super(LeadFootRound, self).__init__(game_obj)
+        self._elapsed = 0.0
+        for snake in self.alive_snakes:
+            snake.set_initial_speed(CFG.LeadFootRound.Speed)
+            snake.gap_size = CFG.LeadFootRound.GapSize
+
+    def step(self, time_delta):
+        super(LeadFootRound, self).step(time_delta)
+        self._elapsed += time_delta
+        speed = int(self._elapsed) * 5
+        for snake in self.alive_snakes:
+            snake.set_speed(CFG.LeadFootRound.Speed + speed)
+
+
 class ReadyAimRound(MainGameState):
     """Snakes fire projectiles to break through walls"""
-    _LABEL = 'Ready, aim...'
-    _SUB_LABEL = 'press both buttons'
+    _LABEL = 'Ready, Aim... Fire!'
+    _SUB_LABEL = 'Press both buttons to fire!'
 
     class Bullet(object):
         def __init__(self, position, velocity, source_color):
@@ -1650,7 +1741,7 @@ class SqueezeRound(MainGameState):
 class TreasureChamberRound(MainGameState):
     """Draw a chamber with treasures in it"""
     _LABEL = 'Treasure Chamber'
-    _SUB_LABEL = '%+d each' % CFG.TreasureChamberRound.PointsPerApple
+    _SUB_LABEL = '%+d Points Each' % CFG.TreasureChamberRound.PointsPerApple
 
     def __init__(self, game_obj):
         super(TreasureChamberRound, self).__init__(game_obj)
@@ -1755,7 +1846,7 @@ class NoGapRound(MainGameState):
 class FollowerRound(MainGameState):
     """An enemy that follows closest snake and eats walls"""
     _LABEL = 'Followers'
-    _SUB_LABEL = 'harmless but hungry...'
+    _SUB_LABEL = 'Harmless but hungry...'
 
     class FollowerController(object):
         def __init__(self, target_actor, snakes, boundary_rect):
@@ -1848,10 +1939,22 @@ class RightTurnOnlyRound(MainGameState):
             snake.turn_rate_left = 0.0
 
 
+class LeftTurnOnlyRound(MainGameState):
+    """Snake can only turn to the left
+
+    Author: Kaelan E."""
+    _LABEL = 'Left Turn Only'
+
+    def __init__(self, game_obj):
+        super(LeftTurnOnlyRound, self).__init__(game_obj)
+        for snake in self.alive_snakes:
+            snake.turn_rate_right = 0.0
+
+
 class AlternateTurnsRound(MainGameState):
     """Each snake only allowed to turn in alternating directions"""
-    _LABEL = 'Alternate'
-    _SUB_LABEL = 'left, then right... left, right, left, right...'
+    _LABEL = 'Alternate Directions'
+    _SUB_LABEL = 'Left, then right... left, right...'
 
     class CallbackShim(object):
         """An object constructed to hold state for each Snake's callback"""
@@ -1877,7 +1980,7 @@ class AlternateTurnsRound(MainGameState):
 class BoostRound(MainGameState):
     """Snakes can boost for a short time"""
     _LABEL = 'Boost'
-    _SUB_LABEL = 'press both buttons'
+    _SUB_LABEL = 'Press both buttons to boost!'
 
     def __init__(self, game_obj):
         super(BoostRound, self).__init__(game_obj)
@@ -1910,12 +2013,137 @@ class BoostRound(MainGameState):
         snake.set_head_dim(False)
 
 
+class SqueezeReadyAimComboRound(MainGameState):
+    """Have the playfield slowly shrink & snakes fire projectiles to break through walls
+
+    Author: Kaelan E."""
+    _LABEL = 'Ready, Aim... Squeeze!'
+    _SUB_LABEL = 'Press both buttons to fire!'
+
+    class Bullet(object):
+        def __init__(self, position, velocity, source_color):
+            self._vel = copy.copy(velocity) * 2.0
+            self.pos = copy.copy(position) + (self._vel.Normalize() * 5)
+            self.source_color = source_color
+            self._radius = 3
+            self._is_alive = True
+
+        def step(self, time_delta):
+            self.pos += self._vel * time_delta
+
+        def draw(self, surface):
+            pygame.draw.circle(surface, CFG.Snake.HeadColorRGB, self.pos.AsIntTuple(), self._radius)
+
+        def can_reap(self):
+            return not self._is_alive
+
+        def reap(self):
+            self._is_alive = False
+
+        def is_touching_wall(self, game_surface):
+            # TODO: profile to see if doing a get_at_mapped() is faster than get_at
+            try:
+                clr = game_surface.get_at(self.pos.AsIntTuple())
+            except IndexError as e:
+                print('Bullet went offscreen at ' + self.pos.AsIntTuple() + ' Exception: ' + e)
+                return True
+            touching = clr not in (CFG.Win.BackgroundColorRGB, CFG.Win.BorderColorRGB)
+            return touching
+
+    def __init__(self, game_obj):
+        super(SqueezeReadyAimComboRound, self).__init__(game_obj)
+        game_rect = self.game_surface.get_rect()
+        self._center_point = (game_rect.centerx, game_rect.centery)
+        self._center_point_jitter = (game_rect.centerx+1, game_rect.centery)
+        self._radius = gnipMath.cVector2(self._center_point[0], self._center_point[1]).Magnitude()  # rectangle diagonal
+        self._radius = int(self._radius * CFG.SqueezeReadyAimComboRound.StartDelayMultiplier)  # delay start of squeeze for a bit
+        self._total_time = CFG.SqueezeReadyAimComboRound.SqueezeDuration
+        self._elapsed = 0.0
+
+        self._bullets = gnppygame.ActorList()
+        self._vfx_actors = gnppygame.ActorList()
+        for snake in self.alive_snakes:
+            snake.head_color_dim = CFG.SqueezeReadyAimComboRound.HeadColorDimIdx
+            snake.wall_size = CFG.SqueezeReadyAimComboRound.WallSize
+        self._bullet_clip_rect = self.game_surface.get_rect().inflate(-20, -20)
+
+    def on_gameplay_begins(self):
+        for snake in self.alive_snakes:
+            snake.register_both_turn_callback(self.both_turn_callback)
+
+    def both_turn_callback(self, snake):
+        """callback for when a player presses both buttons simultaneously"""
+        is_alive = snake in self.alive_snakes
+        if is_alive and not snake.is_head_dimmed:
+            game = self.owner()
+            game.audio_mgr.play('SOUND999')
+            self._bullets.append(self.Bullet(snake.pos, snake.vel, snake.body_color))
+            snake.set_head_dim(True)
+            game.timers.add(CFG.SqueezeReadyAimComboRound.FiringCooldown, functools.partial(SqueezeReadyAimComboRound.on_timer_reset_firing, snake))
+
+    @staticmethod
+    def on_timer_reset_firing(snake):
+        """Callback to fire when the snake's cooldown has reset"""
+        snake.set_head_dim(False)
+
+    def draw(self, surface):
+        super(SqueezeReadyAimComboRound, self).draw(surface)
+        self._vfx_actors.draw(surface)
+        self._bullets.draw(surface)
+
+    def step(self, time_delta):
+        super(SqueezeReadyAimComboRound, self).step(time_delta)
+        radius = int(gnipMath.Lerp(self._radius, CFG.SqueezeRound.MinCircleRadius, min(self._elapsed / self._total_time, 1.0)))
+        # Pygame bug: circles with width > 1 have missing pixels (moire pattern artifacts on concentric circles): Fixed in Pygame 1.9.4: https://stackoverflow.com/a/48720206
+        # Put in a hacky fix that draws two circles with a one pixel offset to get rid of circle drawing artifacts
+        pygame.draw.circle(self.game_surface, CFG.Win.BorderColorIdx, self._center_point, radius, 3)
+        pygame.draw.circle(self.game_surface, CFG.Win.BorderColorIdx, self._center_point_jitter, radius, 3)
+        self._elapsed += time_delta
+        # Maybe slow down shrink rate as it gets smaller?
+
+        self._bullets.step(time_delta)
+        self._vfx_actors.step(time_delta)
+        game_surface = self.game_surface
+        for bullet in self._bullets:
+            if not self._bullet_clip_rect.collidepoint(bullet.pos.AsIntTuple()):
+                self.owner().audio_mgr.play('Bullet Hits Wall')
+                bullet.reap()
+            if bullet.is_touching_wall(game_surface):
+                self.owner().audio_mgr.play('SOUND49D')
+                pygame.draw.circle(game_surface, CFG.Win.BackgroundColorIdx, bullet.pos.AsIntTuple(), CFG.SqueezeReadyAimComboRound.ExplosionRadius)
+                self._vfx_actors.extend(self._explosion_factory(bullet.pos, bullet.source_color.rgb))
+                bullet.reap()
+
+    @staticmethod
+    def _explosion_factory(pos, color):
+        implode = gnpactor.GrowingCircle(pos, 35.0, 0.0, gnppygame.DARKGRAY, 0.15)
+        explode = gnpparticle.Emitter(
+            pos,
+            gnpparticle.EmitterRate_DelayRangeWithLifetime(0.001, 0.001, 0.075),
+            gnpparticle.EmitterSpeed_Range(50.0, 100.0),
+            gnpparticle.EmitterDirection_360(),
+            gnpparticle.EmitterLifetime_Range(0.1, 0.4),
+            gnpparticle.EmitterColor_Constant(color),
+            1
+        )
+        ring = gnpparticle.Emitter(
+            pos,
+            gnpparticle.EmitterRate_DelayRangeWithLifetime(0.001, 0.001, 0.1),
+            gnpparticle.EmitterSpeed_Constant(15.0),
+            gnpparticle.EmitterDirection_360(),
+            gnpparticle.EmitterLifetime_Range(1.1, 2.0),
+            gnpparticle.EmitterColor_Choice((color, color, gnppygame.DARKGRAY)),
+            1
+        )
+        return implode, explode, ring
+
+
 class HitSpacebarToContinueState(gnppygame.GameState):
 ##  def __init__(self, owner):
 ##      cGameState.__init__(self, owner)
 
     def draw_hit_spacebar_to_continue_text(self):
-        self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, '- Hit spacebar to continue -', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
+        self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, '- Press SPACE to continue -', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -1995,7 +2223,7 @@ class PlayerRegistrationState(gnppygame.GameState):
 
     def draw_player_instructions(self):
         if len(self.owner()._controllers) > 0:
-            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold either to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
+            self.owner().font_mgr.draw(pygame.display.get_surface(), self.owner().fnt, 24, 'Press LEFT/RIGHT to change name/color, hold both to remove player. F5 to remove bottom player. Press SPACE to start.', self.owner().get_screen_rect(), GLOBAL_RED, 'center', 'bottom')
 
     def goto_next_state(self):
         """meant to be overridden"""
@@ -2006,7 +2234,7 @@ class PlayerRegistrationState(gnppygame.GameState):
             return False
 
         if self.player_registration_in_flight:
-            print('Cant start game while a player registration is in progress')
+            print("Cannot start the game while a player's registration is in progress")
             self.owner().audio_mgr.play('HAMMER')
             return False
 
@@ -2023,7 +2251,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                     self.owner().font_mgr,
                     self.owner().fnt,
                     24,
-                    "Can not start until all players have unique colors",
+                    "Cannot start the game until all players have unique colors",
                     err_msg_rect,
                     gnppygame.WHITE,
                     'center',
@@ -2049,7 +2277,7 @@ class PlayerRegistrationState(gnppygame.GameState):
             if e.type == pygame.KEYDOWN and e.key == pygame.K_F5:
                 # don't delete player while a new registration is taking place
                 if not self.player_registration_in_flight:
-                    print('Clearing last player from list')
+                    print('Removing bottom player from the list')
                     self.owner().audio_mgr.play('HAMMER')
                     ctrls = self.owner()._controllers
                     if len(ctrls) > 0:
@@ -2162,7 +2390,7 @@ class PlayerRegistrationState(gnppygame.GameState):
         self.player_registration_in_flight = False
 
         while True:
-            self.header = 'Add a new player. Start by pressing a button to be their LEFT control.'
+            self.header = 'To add a new player, start by pressing a button to be their LEFT control.'
 
             event = yield from wait_until(lambda evt: evt and evt.type in (
             pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.JOYBUTTONDOWN)
@@ -2180,7 +2408,7 @@ class PlayerRegistrationState(gnppygame.GameState):
                 j = self.owner().joys[event.joy]
                 joy_msg = f'{j._joy.get_name().strip()} #{j._joy.get_id()}'
             left_event = event
-            self.header = f'Complete addition of new player by pressing a button on the {device} {joy_msg} to be player\'s RIGHT control.'
+            self.header = f'Complete addition of the new player by pressing a button on the {device} {joy_msg} to be the player\'s RIGHT control.'
             yield  # consume the event that was handled above by yielding control
 
             event = yield from wait_until(lambda evt: is_event_on_same_device_and_not_same_button(left_event, evt))

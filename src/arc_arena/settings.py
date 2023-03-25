@@ -48,6 +48,8 @@ class Player:
         'Zeus',
     )
 
+    RequireUniqueNames = True
+
     _orig_colors = (
         (255, 91, 173),  # pink
         (228, 0, 19),  # red
@@ -170,8 +172,8 @@ class Profiler:
 ########## Round-specific config
 class Round:
     # RoundSet = 'basic_only'
-    RoundSet = 'all'
-    # RoundSet = 'favorite'
+    # RoundSet = 'all'
+    RoundSet = 'favorite'
     RandomRoundSelection = False
     ShuffleStartLocations = True
     LabelVisibilityTime = 4.0
@@ -205,9 +207,26 @@ class ColorBlindRound:
     ColorIdx = 104
     ColorRGB = (128, 128, 128)
 
+class JukeRound:
+    Speed = 50
+    IncreasedTurnRate = 4.0
+
 class IndigestionRound:
     GapSize = Snake.GapSize * 2
     CycleInSeconds = 40.0
+
+class GoliathRound:
+    Speed = 80
+    GapSize = Snake.GapSize * 6
+
+class SpeedCyclesRound:
+    Speed = 15
+    GapSize = Snake.GapSize
+    CycleInSeconds = 30.0
+
+class LeadFootRound:
+    Speed = 15
+    GapSize = Snake.GapSize * 2
 
 class ReadyAimRound:
     FiringCooldown = 2.0
@@ -235,3 +254,14 @@ class FollowerRound:
     FollowerClearRadius = 15
     FollowerSpawnRadiusPercentage = 0.7
     SnakeWallSize = 300
+
+class SqueezeReadyAimComboRound:
+    StartDelayMultiplier = 1.15
+    SqueezeDuration = 45.0
+    MinCircleRadius = 150
+
+    FiringCooldown = 0.5
+    ExplosionRadius = 20
+    WallSize = 200
+    HeadColorDimIdx = 103
+    HeadColorDimRGB = (160, 160, 160)
