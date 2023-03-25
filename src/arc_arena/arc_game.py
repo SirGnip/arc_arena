@@ -1023,6 +1023,7 @@ class ArcGame(gnppygame.GameWithStates):
             ColorBlindRound,
             AppleRushRound,
             RightTurnOnlyRound,
+            ScatterThroughInfinityRound,
             LeftTurnOnlyRound,
             BoostRound,
             TurboArcRound,
@@ -1084,6 +1085,7 @@ class ArcGame(gnppygame.GameWithStates):
             IndigestionRound,
             AppleRushRound,
             BoostRound,
+            ScatterThroughInfinityRound,
             SqueezeRound,
             FollowerRound,
             ReadyAimRound,
@@ -1832,6 +1834,15 @@ class ScatterRound(MainGameState):
             random.randint(-xdelta, xdelta),
             random.randint(-ydelta, ydelta)
         )
+
+
+class ScatterThroughInfinityRound(ScatterRound):
+    _LABEL = 'Scatter'
+    _SUB_LABEL = "Through Infinity"
+
+    def __init__(self, game_obj):
+        super(ScatterThroughInfinityRound, self).__init__(game_obj)
+        self.enable_wrapping()
 
 
 class NoGapRound(MainGameState):
