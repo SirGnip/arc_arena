@@ -307,9 +307,15 @@ class Snake(object):
     RIGHTTURN = 2
     BOTHTURN = 3
     
-    def __init__(self, body_color, background_color, start_pos, start_direction):
+    def __init__(self, body_color, background_color, start_pos, start_direction, screen_rect):
         assert isinstance(start_pos, gnipMath.cVector2), 'cSnake starting position must be a gnipMath.cVector2'
         assert isinstance(start_direction, gnipMath.cVector2), 'cSnake starting direction must be a gnipMath.cVector2'
+
+        self.screen_rect = screen_rect
+        wrap_offset = 16
+        self.wrap_boundary = self.screen_rect.inflate(-wrap_offset, -wrap_offset)
+        self.do_wrap = False
+
         self._start_direction = start_direction
         self.head_color = CFG.Snake.HeadColorIdx
         self.head_color_dim = None
@@ -392,8 +398,19 @@ class Snake(object):
             self.turn_left(time_delta)
         if self.turning_dir == self.RIGHTTURN:
             self.turn_right(time_delta)
+
         self.last_pos = self.pos
         self.pos = self.pos + (self.vel * time_delta)
+
+        if self.do_wrap:
+            if self.pos.x > self.wrap_boundary.right:
+                self.pos = gnipMath.cVector2(self.wrap_boundary.left, self.pos.y)
+            elif self.pos.x < self.wrap_boundary.left:
+                self.pos = gnipMath.cVector2(self.wrap_boundary.right, self.pos.y)
+            elif self.pos.y > self.wrap_boundary.bottom:
+                self.pos = gnipMath.cVector2(self.pos.x, self.wrap_boundary.top)
+            elif self.pos.y < self.wrap_boundary.top:
+                self.pos = gnipMath.cVector2(self.pos.x, self.wrap_boundary.bottom)
 
     def set_turn_state(self, turn):
         if self._turn_state_callback:
@@ -711,7 +728,7 @@ def draw_background_concentric_arcs(surf, gameobj):
             rect.inflate_ip(-step, -step)
 
     win = surf.get_rect()
-    win.inflate_ip(150, 150) # since ScatterRound._make_grid_points() doesn't create points o nthe edges, inflate the rect first
+    win.inflate_ip(150, 150) # since ScatterRound._make_grid_points() doesn't create points on the edges, inflate the rect first
     pts = ScatterRound._make_grid_points(win, 100)
     pts = [p + ScatterRound._get_jitter_vect(15, 15) for p in pts]
     random.shuffle(pts)
@@ -1010,6 +1027,7 @@ class ArcGame(gnppygame.GameWithStates):
             AlternateTurnsRound,
             ReadyAimRound,
             TreasureChamberRound,
+            BeyondTheBorder,
         )
 
         basic_only_round = (
@@ -1038,6 +1056,7 @@ class ArcGame(gnppygame.GameWithStates):
             ScatterRound,
             IndigestionRound,
             BasicRound,
+            BeyondTheBorder,
             ColorBlindRound,
             AppleRushRound,
             RightTurnOnlyRound,
@@ -1060,6 +1079,7 @@ class ArcGame(gnppygame.GameWithStates):
             SqueezeRound,
             FollowerRound,
             ReadyAimRound,
+            BeyondTheBorder,
         )
 
         if CFG.Round.RoundSet == 'all':
@@ -1131,6 +1151,7 @@ class MainGameState(gnppygame.GameState):
     def __init__(self, game_obj):
         super(MainGameState, self).__init__(game_obj)
         self.round_over = False
+        self.do_wrap = False
         self.background_color = CFG.Win.BackgroundColorIdx
         self.alive_snakes = []
         self.owner().scoreboard.start_round()
@@ -1158,7 +1179,7 @@ class MainGameState(gnppygame.GameState):
         assert len(start_positions) == len(self.owner()._controllers), 'Did not get the same number of start positions as controllers'
         for idx, controller in enumerate(self.owner()._controllers):
             start_dir = gnipMath.cVector2(1.0, 0.05) if CFG.Debug.On else center - start_positions[idx]
-            snake = Snake(controller._color, self.background_color, start_positions[idx], start_dir)
+            snake = Snake(controller._color, self.background_color, start_positions[idx], start_dir, rect)
             self.alive_snakes.append(snake)
             controller.possess(snake)
 
@@ -1169,10 +1190,14 @@ class MainGameState(gnppygame.GameState):
         self.game_surface.set_colorkey(CFG.Win.BackgroundColorIdx)
         self.game_surface.fill(CFG.Win.BackgroundColorIdx)
         assert isinstance(CFG.Win.BorderColorIdx, int)
-        pygame.draw.rect(self.game_surface, CFG.Win.BorderColorIdx, self.owner().get_screen_rect(), 15)
 
         self._paused = True
         self._fps_timer = gnppygame.FrameTimer()
+
+    def enable_wrapping(self):
+        self.do_wrap = True
+        for snake in self.alive_snakes:
+            snake.do_wrap = True
 
     def _add_round_labels(self):
         game = self.owner()
@@ -1221,13 +1246,16 @@ class MainGameState(gnppygame.GameState):
         super(MainGameState, self).begin_state()
         print('start round')
 
-        shrink_time = 0.5 if CFG.Debug.On else 4.8
+        if not self.do_wrap:
+            pygame.draw.rect(self.game_surface, CFG.Win.BorderColorIdx, self.owner().get_screen_rect(), 15)
+
+        shrink_time = 0.5 if CFG.Debug.On or CFG.Debug.FastStart else 4.8
         for snake in self.alive_snakes:
             color = _darken_color(snake.body_color.rgb, 0.5)
             self.actors.append(gnpactor.GrowingCircle(snake.pos, 40.0, 0.0, color, shrink_time))
 
         # trigger stutter-start beginning snake animation
-        start_delta = 0.1 if CFG.Debug.On else CFG.Round.StartDelta
+        start_delta = 0.1 if CFG.Debug.On or CFG.Debug.FastStart else CFG.Round.StartDelta
         self.on_timer_first_step(play_beep=False)
         _game.timers.add(1 * start_delta, self.on_timer_first_step)
         _game.timers.add(2 * start_delta, self.on_timer_first_step)
@@ -1659,6 +1687,14 @@ class TreasureChamberRound(MainGameState):
     def draw_below_game(self, surface):
         super(TreasureChamberRound, self).draw_below_game(surface)
         self._apples.draw(surface)
+
+
+class BeyondTheBorder(MainGameState):
+    _LABEL = 'Beyond the Border'
+
+    def __init__(self, game_obj):
+        super(BeyondTheBorder, self).__init__(game_obj)
+        self.enable_wrapping()
 
 
 class ScatterRound(MainGameState):
