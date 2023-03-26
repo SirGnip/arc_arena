@@ -2206,7 +2206,7 @@ class SqueezeReadyAimComboRound(MainGameState):
         game_surface = self.game_surface
         for bullet in self._bullets:
             if not self._bullet_clip_rect.collidepoint(bullet.pos.AsIntTuple()):
-                self.owner().audio_mgr.play('Bullet Hits Wall')
+                self.owner().audio_mgr.play('SOUND105')
                 bullet.reap()
             if bullet.is_touching_wall(game_surface):
                 self.owner().audio_mgr.play('SOUND49D')
