@@ -19,9 +19,9 @@ you ever played it against a large group of your friends, sitting next to you on
 ### Features:
 
 - Local multiplayer "for a crowd" (supports 1-14 players)
-- Simple controls (2 buttons per player)
+- Simple controls (only 2 buttons per player)
 - Registration screen allows the players to use whatever keyboard, mouse, and gamepads are connected to the computer for their input
-- 19 level types that remix the core gameplay
+- Includes 30 different levels that remix the core gameplay
 
 # Installation
 
@@ -62,6 +62,7 @@ Input:
 
 # Revision History
 
+- 2.1.0 (3/2023): rename to Arc Arena, add support for PyInstaller, add custom font, registration screen tweaks, add new rounds (some from Kaelan E).
 - 2.0.0 (10/2020): migrated to Python 3, partially to be able to use [PyInstaller](https://www.pyinstaller.org/).
 - 1.0.0 (8/2020): migrated code to GitHub, added ability to package with setup.py, extracted shared code into `gnp_pygame`, no attempts at cleanup.
 - pre-GitHub (2006, probably even earlier): a big, messy uber-repo-ish kinda thing with tons of random Python code, which included this game. I creatively called the game "Snake".
