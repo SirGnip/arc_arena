@@ -1271,7 +1271,7 @@ class GoliathRound(MainGameState):
     def step(self, time_delta):
         super(GoliathRound, self).step(time_delta)
         self._elapsed += time_delta
-        size = int(self._elapsed) * 2
+        size = max(1, int(self._elapsed) * 2)
         for snake in self.alive_snakes:
             snake.draw_size = size
             snake.whisker_length = max(4, size + 2)  # collision seemed flaky mostly at small widths, not sure why
